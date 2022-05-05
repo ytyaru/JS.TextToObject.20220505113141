@@ -99,7 +99,146 @@ for (const option of element.options) {
 
 　ふたつ目はテキストを短く書きたいから。もしキーを書いてしまえば既存のXML,JSON,YAML,TOML,LTSVのように冗長なテキストになってしまう。それにキーはIDなので、結局は一文字でも違えば機能しない。それなら位置をキーにしたっていいじゃないか、という発想。人が手で入力するとミスが発生しうるため、その意味でもできるだけ入力値の量は減らしたい。短く書きたい。そのためにはキーを減らすしかない。キーがなければオブジェクト化できない。よって本ライブラリではオプションのオブジェクト化は非対応である。
 
+　パンくずリストのshcema.orgをあらわすBreadcrumbListについて。テキストで書き、それをオブジェクトに変換する。
+
+bread-crumb-list.txt
+```
+🏠  https://example.com/
+大カテゴリ    https://example.com/category1/
+中カテゴリ    https://example.com/category1/category2
+小カテゴリ    https://example.com/category1/category2/category3
+```
+参照方法の確認
+```javascript
+const txt = await fetch('bread-crumb-list.txt')
+const elements = TextElement.Single(txt)
+elements[0].name;         // 🏠
+elements[0].options[0];   // https://example.com/
+elements[1].name;         // 大カテゴリ
+elements[1].options[0];   // https://example.com/category1/
+elements[2].name;         // 中カテゴリ
+elements[2].options[0];   // https://example.com/category1/category2
+elements[3].name;         // 小カテゴリ
+elements[3].options[0];   // https://example.com/category1/category2/category3
+```
+main.js
+```javascript
+window.addEventListener('load', async(event)=>{
+    function generateBreadcrumbList() {
+        const elements = TextElement.Single(txt)
+        const bread = {'@context': 'https://schema.org', '@type': 'BreadcrumbList'}
+        bread.itemListElement = [] 
+        for (let i=0; i<elements.length; i++) {
+            const item = {'@context': 'https://schema.org', '@type': 'ListItem'}
+            item.position = i
+            item.name = elements[i].name
+            item.item = elements[i].options[0]
+            bread.itemListElement.push(item)
+        }
+        return bread
+    }
+    const jsonLdStr = JSON.stringify(
+                        generateBreadcrumbList(
+                            await fetch('bread-crumb-list.txt')))
+});
+```
+
 ### MultiLineElement（複数行要素）
+
+　MultiLineElement（複数行要素）は、複数のSingleLineElement（単一行要素）でひとつの要素をあらわす。さらに要素をひとつのテキスト内で複数書ける。そのときは2行の改行で間をあける。
+
+```
+ひとつ目の要素における1行目の要素
+ひとつ目の要素における2行目の要素
+
+ふたつ目の要素における1行目の要素
+ふたつ目の要素における2行目の要素
+```
+
+```javascript
+const items = []
+let begin = 0
+let end = 0
+const lines = txt.split('\n')
+for (let i=0; i<lines.length; i++) {
+    end++;
+    if (lines[i]) { begin = end + 1; }
+    else {
+        items.push(TextElement.Single(lines.slice(begin, end).join('\n')))
+    }
+}
+return items
+```
+
+　けれど2行改行がつぎの場合だと正しく動作しない。
+
+* 2行改行でなく3行、4行などもっと多い改行である
+* 末尾に改行がない
+* 末尾に2行改行より多い改行がある
+
+```javascript
+class TextElement {
+    Multi(txt) {
+        const items = []
+        let begin = 0
+        let end = 0
+        let brank = 0
+        const lines = txt.split('\n')
+        for (let i=0; i<lines.length; i++) {
+            end++;
+            if (!lines[i]) { // 空行なら
+                // SingleLineElement（単一行要素）を追加する
+                items.push(TextElement.Single(lines.slice(begin, end).join('\n')))
+                // 次の要素までにある空行をすべて飛ばす
+                begin = end + 1
+                for(let n=begin; n<lines.length; n++) {
+                    if (lines[n]) { begin++; }
+                }
+                end = begin
+                i = begin
+            }
+        }
+        return items
+    }
+}
+```
+
+　schema.orgのFAQを例にしてみる。
+
+faq.txt
+```
+よくある質問は必要ですか？
+はい、必要です。
+
+複数の質問を書きたいですよね？
+はい、書きたいです。
+```
+
+main.js
+```javascript
+window.addEventListener('load', async(event)=>{
+    function generateFaq(txt) {
+        const elements = TextElement.Multi(txt)
+        const faq = {'@context': 'https://schema.org', '@type': 'FAQPage'}
+        faq.mainEntity = [] 
+        for (const element of elements) {
+            const item = {'@context': 'https://schema.org', '@type': 'Question'}
+            item.name = element[0].name
+            item.acceptedAnswer = {
+                '@type': 'Answer',
+                text: element[1].name,
+            }
+            faq.mainEntity.push(item)
+        }
+        return faq
+    }
+    const jsonLdStr = JSON.stringify(
+                        generateFaq(
+                            await fetch('faq.txt')))
+});
+```
+
+　なお、このテキスト形式においてコメントは実装しない。よくあるのは行頭`#`や`;`のときにコメントという書式である。それらは実装しない。できるだけシンプルにしたいから。そもそもシンプルなテキストから複雑なschema.orgを作りたいという要件だったので、ソースのテキストが複雑になってしまったら本末転倒。余計な機能も作り込みたくない。
 
 ### TreeElement（木構造要素）
 
