@@ -572,16 +572,11 @@ class TreeElement {
         const items = []
         const txts = this.#CompositeTxts(LINES)
         for (const txt of txts) {
-            const item = {}
-            let method = this.MultiLineElement
+            let method = this.Multi
             for (const line of txt) {
-                if (line.startsWith(indent)) { method = this.TreeElement }
+                if (line.startsWith(indent)) { method = this.Tree }
             }
-            item.type = (line.startsWith(indent)) ? 'T' : 'M'
-            method = (line.startsWith(indent)) ? this.Tree : this.Multi
-            item.txt = method(txt, indent)
-            items.push(item)
-            //items.push(method(txt, indent))
+            items.push(method(txt, indent))
         }
         return items
     }
