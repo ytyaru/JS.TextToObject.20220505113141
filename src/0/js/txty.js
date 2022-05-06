@@ -12,6 +12,48 @@ class Txty {
         obj.options = (1 < values.length) ? values.slice(1) : []
         return obj
     }
+    static lines(txt, indent='    ') {
+        const items = []
+        let [begin, end, brank] = [0, 0, 0]
+        const lines = txt.split(/\r\n|\n/)
+        console.log(lines)
+        for (let i=0; i<lines.length; i++) {
+            end++;
+            if (!lines[i]) { // 空行なら
+                end--;
+                // SingleLineElement（単一行要素）を追加する
+                console.log(begin, end, lines.slice(begin, end))
+                items.push(lines.slice(begin, end).map(line=>this.line(line, indent)))
+                /*
+                const item = []
+                for (const line of lines.slice(begin, end)) {
+                    item.push(TextElement.Single(line, indent))
+                }
+                items.push(item)
+                */
+                //items.push(TextElement.Single(lines.slice(begin, end).join('\n'), indent))
+                // 次の要素までにある空行をすべて飛ばす
+                begin = end + 1
+                for(let n=begin; n<lines.length; n++) {
+                    if (lines[n]) { begin++; }
+                }
+                end = begin
+                i = begin
+                console.log(begin, end)
+            }
+        }
+        console.log(begin, end, lines.length)
+        //if (end < lines.length) {
+        /*
+        if (begin !== end) {
+            end = lines.length
+            items.push(lines.slice(begin, end).map(line=>Txty.line(line, indent)))
+        }
+        */
+        items.push(lines.slice(begin-1, end).map(line=>Txty.line(line, indent)))
+        //if (0 === items.length && txt.trim()) { items.push(txt); }
+        return items
+    }
 
     static Composite(txt, indent='    ') { // 2行以上空行の箇所で分断する。
         const items = this.#CompositeItems(txt.split('\n'), indent)
