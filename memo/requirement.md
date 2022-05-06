@@ -143,6 +143,18 @@ window.addEventListener('load', async(event)=>{
 });
 ```
 
+```javascript
+class TextElement {
+    Single(line, indent='    ') {
+        const obj = {}
+        const values = line.split(indent)
+        obj.name = values[0]
+        if (1 < values.length) { obj.options = values.slice(1); }
+        return obj
+    }
+}
+```
+
 ### MultiLineElement（複数行要素）
 
 　MultiLineElement（複数行要素）は、複数のSingleLineElement（単一行要素）でひとつの要素をあらわす。さらに要素をひとつのテキスト内で複数書ける。そのときは2行の改行で間をあける。
@@ -178,7 +190,7 @@ return items
 
 ```javascript
 class TextElement {
-    Multi(txt) {
+    Multi(txt, indent='    ') {
         const items = []
         let begin = 0
         let end = 0
@@ -188,7 +200,15 @@ class TextElement {
             end++;
             if (!lines[i]) { // 空行なら
                 // SingleLineElement（単一行要素）を追加する
-                items.push(TextElement.Single(lines.slice(begin, end).join('\n')))
+                items.push(lines.slice(begin, end).map(line=>TextElement.Single(line, indent)))
+                /*
+                const item = []
+                for (const line of lines.slice(begin, end)) {
+                    item.push(TextElement.Single(line, indent))
+                }
+                items.push(item)
+                */
+                //items.push(TextElement.Single(lines.slice(begin, end).join('\n'), indent))
                 // 次の要素までにある空行をすべて飛ばす
                 begin = end + 1
                 for(let n=begin; n<lines.length; n++) {
@@ -241,6 +261,148 @@ window.addEventListener('load', async(event)=>{
 　なお、このテキスト形式においてコメントは実装しない。よくあるのは行頭`#`や`;`のときにコメントという書式である。それらは実装しない。できるだけシンプルにしたいから。そもそもシンプルなテキストから複雑なschema.orgを作りたいという要件だったので、ソースのテキストが複雑になってしまったら本末転倒。余計な機能も作り込みたくない。
 
 ### TreeElement（木構造要素）
+
+　TreeElement（木構造要素）はツリー構造テキストをあらわす。ツリーは親子関係をもったノードのリストである。ひとつのノードはSingleLineElementであらわす。
+
+```javascript
+const root = TextElement.Tree(txt)
+root.indent  // 入力テキストのインデント（'\t','  ','    ',）
+root.maxDeps // rootだけがもつ。最深階層数
+root.deps    // 現在の階層数
+root.nodes   // 子の配列
+root.name    // 名前。値。必須値
+root.options // オプション値
+```
+
+　schema.orgの`HowTo`がもつ`step`値を以下テキストから生成したい。このとき、まずテキストからツリー構造オブジェクトを生成するのが今回の対象範囲である。
+
+```
+セクション1
+    手順1-1
+        手順1-1-1
+        TIP:ヒント1
+    手順1-2
+        手順1-2-1
+        TIP:ヒント2
+セクション2
+    手順2-1
+        手順2-1-1
+        TIP:ヒント3
+    手順2-2
+        手順2-2-1
+        TIP:ヒント4
+```
+
+　ツリーテキストを1行ずつみるとき、以下のように階層差でだれの子として挿入するか判断する。
+
+階層差|関係
+------|----
+前行と同じ|parent.childrenの末弟。
+前行より1深い|now.childrenの長兄。
+前行より1浅い|parent.childrenの末弟。
+それ以外|不正値
+
+```javascript
+class TextElement {
+    Tree(txt) {
+        const root = {}
+        const LINES = txt.split('\n')
+        root.indentText = this.#guessIndent(LINES)
+        root.maxDepth = 1
+        let [depth, preDepth] = [1, 1]
+        const parents = [root]
+        for (const line of LINES) {
+            if (!line) { break; }
+            depth = getDepth(line)
+            this.#validDepth(depth, preDepth)
+            const node = this.Single(line.slice(root.indent.length * depth), root.indent)
+            let parent = parents[parents.length-1]
+            if (preDepth === depth) { parent.nodes.push(node); }
+            else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].push(node); }
+            //else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].nodes.push(node); }
+            else if (depth < preDepth) { parents.pop(); parent.nodes.push(node); }
+            else if (preDepth < depth) { parent.nodes.push(node); }
+            if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
+            root.nodes.push(node)
+        }
+        return root
+    }
+    #getParent(root, depth) {
+        let target = root
+        for (let i=1; i<depth; i++) {
+            if (!target.hasOwnProperty('nodes')) { target.nodes = []; }
+            target = target.nodes
+        }
+        return target
+    }
+    #addChild(parent, child) {
+        if (!parent.hasOwnProperty('nodes')) { parent.nodes = []; }
+        parent.nodes.push(child)
+    }
+    #validDepth(depth, preDepth) {
+        if (0 < depth && (depth === preDepth || depth === preDepth + 1 || depth === preDepth - 1)) { return true; }
+        throw TextElementIndentDepthError(`テキストの階層が不正です。前の行と同じかひとつだけ深いインデントのみ許可されます。`)
+    }
+    #getDepth(line, indent) {
+        let depth = 1;
+        while (line.startsWith(indent.repeat(depth))) { depth++ }
+        return depth
+    }
+    #guessIndentText(LINES) { // テキスト内のインデント文字を推測する（最初に見つかった所定のインデント文字がそれとする。以降それをインデント文字として使われることを期待する）
+        const INDENTS = ['\t'].concat([2,4,8].map((i)=>' '.repeat(i)))
+        for (const line of LINES) {
+            return INDENTS.find(indent=>line.startsWith(indent))
+        }
+    }
+}
+```
+
+main.js
+```javascript
+window.addEventListener('load', async(event)=>{
+    function generateHowTo(txt) {
+        const howto = {'@context': 'https://schema.org', '@type': 'HowTo'}
+        howto.step = []
+        const root = TextElement.Tree(txt)
+        if (3 === root.maxDepth) { // 3層
+            for (const node of root.nodes) {
+                const section = this.#Section(node)
+                if (node.nodes) {
+                    for (const step of node.nodes) {
+                        section.itemElementList.push(this.#Step(step))
+                    }
+                }
+                howto.step.push(section)
+            }
+        } else { // 1,2層
+            for (const step of root.nodes) {
+                howto.step.push(this.#Step(step))
+            }
+        }
+        return howto
+    }
+    #Section(node) {
+        const section = {'@context': 'https://schema.org', '@type': 'HowToSection'}
+        section.name = node.name
+        section.itemElementList = []
+    }
+    #Step(node) {
+        const step = {'@context': 'https://schema.org', '@type': 'HowToStep'}
+        if (node.nodes) {
+            for (const child of node.nodes) {
+                step.itemElementList = []
+                if (child.name.toUpperCase().startsWith('TIP:')) { step.itemElementList.push(this.#Direction(node)); }
+                else { step.itemElementList.push(this.#Tip(node)); }
+            }
+        } else { step.text = node.name; }
+    }
+    #Direction(node) { return {'@context': 'https://schema.org', '@type': 'HowToDirection', text:node.name }; }
+    #Tip(node) { return {'@context': 'https://schema.org', '@type': 'HowToTip', text:node.name }; }
+    const jsonLdStr = JSON.stringify(
+                        generateFaq(
+                            await fetch('how-to-steps.txt')))
+});
+```
 
 
 ### HowToStep系
