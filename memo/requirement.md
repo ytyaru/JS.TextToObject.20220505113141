@@ -404,6 +404,215 @@ window.addEventListener('load', async(event)=>{
 });
 ```
 
+### CompositeElement（複合形）
+
+　CompositeElement（複合形）は以下の複合形である。
+
+* SingleLineElement（一行で値とオプションをあらわす。インデント文字で値やオプション間を区切る）
+* MultiLineElement（複数のSingleLineElementでひとつの要素をあらわす。2空行で要素間を区切る）
+* TreeElement（ひとつの木構造をあらわす）
+
+　schema.orgのHowTo全体をあらわすために実装する。
+
+how-to-1.txt
+```
+MultiLineElement（HowToのオプション。名前、所要時間、画像、ビデオなど）
+
+MultiLineElement（HowToSupply配列）
+
+MultiLineElement（HowToTool配列）
+
+TreeElement（HowToSection, HowToStep, HowToDirection, HowToTip）
+```
+
+how-to-1.txt
+```
+MultiLineElement（HowToのオプション。名前、所要時間、画像、ビデオなど）
+name
+image
+video
+estimatedCost
+totalTime
+
+MultiLineElement（HowToSupply配列）
+name    image   
+MultiLineElement（HowToTool配列）
+
+TreeElement（HowToSection, HowToStep, HowToDirection, HowToTip）
+セクション1
+    手順1-1     url     image   video
+        手順1-1-1
+        TIP:ヒント1
+    手順1-2     url     image   video
+        手順1-2-1
+        TIP:ヒント2
+セクション2
+    手順2-1     url     image   video
+        手順2-1-1
+        TIP:ヒント3
+    手順2-2     url     image   video
+        手順2-2-1
+        TIP:ヒント4
+```
+
+　このとき許可されるパターンは以下。
+
+* Multi, Multi, Multi, Tree
+* Multi, Multi, Tree（2つ目のMultiはToolでなくSupply（道具は不要でも素材は必要になるのが一般的な手順だから））
+* Multi, Tree
+
+　複合系のとき、各型との区別は2つ以上の空行で行う。
+
+```javascript
+TextElement.Composite(txt, '    ', 'MmmT')
+```
+
+引数|説明
+----|----
+1|入力テキスト
+2|インデント文字列
+3|複合型の位置とその内容型
+
+　第三引数について。各字は型をあらわす。順序はその型があらわれる位置をあらわす。小文字はオプションであり大文字は必須である。オプションなら存在しなくてもよい。
+
+値|説明
+--|----
+`s`,`S`|`SimpleElement`型（任意,必須）
+`m`,`M`|`MultiLineElement`型（任意,必須）
+`t`,`T`|`TreeElement`型（任意,必須）
+
+　各型は2行以上の空行で区切られる。よって`MmmT`のように4字あれば最大3つの2行以上空行がある。ただし小文字の`mm`はオプションであり、存在しない場合がありうる。つまり2行以上空白は、3,2,1つの3パターンがありうる。
+
+　もし第三引数が`null`,`空文字`,`undefined`であれば自動推測する。まずは2行以上空行をさがす。それらをテキスト塊とし、インデント文字が先頭に含まれている行があればTree型と判断する。それ以外であればMulti型と判断する。
+
+　もし第三引数が`null`,`空文字`,`undefined`でなく、`s`,`S`,`m`,`M`,`t`,`T`以外の文字が含まれていたら、不正値として例外を発生させる。
+
+```javascript
+class TreeElement {
+    Composite(txt, indent='    ', format='') {
+
+    }
+}
+```
+```javascript
+class TreeElement {
+    #Composite(txt, indent='    ', format='') { // 2行以上空行の箇所で分断する。
+        const items = this.#CompositeItems(txt.split('\n'), indent)
+        // formatによるバリデート
+        if (format) {}
+        return items
+    }
+    #validCompositeFormatString(format) {
+        const VALIDS = ['s','m','t','S','M','T']
+        for (let i=0; i<format.length; i++) {
+            if (!VALIDS.some(format.charAt(i)) { throw new TextElementError(`Compositeのformatが不正値です。次のいずれかの文字だけ使用してください。\n${VALIDS.join('\n')}\nあるいは未設定、空文字、null, undefinedにすると自動推測します。2行以上空白で要素を区切り、その要素型はMultiLineElementかTreeElementのいずれかであると判断します。要素内の全行のうちひとつでも行頭にインデント値をもつ行があればTreeと判断します。`); }
+        }
+    }
+    #validCompositeFormat(items, format) {
+        for (let i=0; i<items.length; i++) {
+            
+            if (['S','M','T'].some(items[i].type))
+            if (['s','m','t'].some)
+        }
+    }
+    #CompositeItems(LINES, indent='    ') { // 2行以上空行の箇所で分断されたテキストの配列を返す。
+        const items = []
+        const txts = this.#CompositeTxts(LINES)
+        for (const txt of txts) {
+            const item = {}
+            let method = this.MultiLineElement
+            for (const line of txt) {
+                if (line.startsWith(indent)) { method = this.TreeElement }
+            }
+            item.type = (line.startsWith(indent)) ? 'T' : 'M'
+            method = (line.startsWith(indent)) ? this.Tree : this.Multi
+            item.txt = method(txt, indent)
+            items.push(item)
+            //items.push(method(txt, indent))
+        }
+        return items
+    }
+    #CompositeTxts(LINES) { // 2行以上空行の箇所で分断されたテキストの配列を返す。
+        const ranges = #CompositeTxtRanges(LINES)
+        return ranges.map(r=>LINES.slice(r.begin, r.end))
+        const txts = []
+        for (const range of ranges) {
+            txts.push(txt.slice(range.begin, range.end))
+        }
+        return txts
+    }
+    #CompositeTxtRanges(LINES) { // 2行以上空行の箇所で分断する。
+        const ranges = []
+        let [begin, end, blank] = [0, 0, 0]
+        for (let i=0; i<LINES.length; i++) {
+            end++;
+            if (line) { continue; }
+            ranges.push({begin:begin, end:end})
+            // 次の要素までにある空行をすべて飛ばす
+            begin = end + 1
+            for(let n=begin; n<lines.length; n++) {
+                if (lines[n]) { begin++; }
+            }
+            end = begin
+            i = begin
+        }
+        return ranges
+    }
+}
+```
+
+　`format`による型チェックはいらないかもしれない。よく考えたら別にMultiLineとTreeの型チェックをする必要なんてない。ふつうにインデントがあればTreeにして、それ以外ならMultiでいい。仮にTree想定だった位置がMultiだったとしても、エンドユーザが好きにすればいい。どのみち返すデータは配列かオブジェクトになるため、エンドユーザ側で制御せねばならないのだから。
+
+```javascript
+class TreeElement {
+    #Composite(txt, indent='    ') { // 2行以上空行の箇所で分断する。
+        const items = this.#CompositeItems(txt.split('\n'), indent)
+    }
+    #CompositeItems(LINES, indent='    ') { // 2行以上空行の箇所で分断されたテキストの配列を返す。
+        const items = []
+        const txts = this.#CompositeTxts(LINES)
+        for (const txt of txts) {
+            const item = {}
+            let method = this.MultiLineElement
+            for (const line of txt) {
+                if (line.startsWith(indent)) { method = this.TreeElement }
+            }
+            item.type = (line.startsWith(indent)) ? 'T' : 'M'
+            method = (line.startsWith(indent)) ? this.Tree : this.Multi
+            item.txt = method(txt, indent)
+            items.push(item)
+            //items.push(method(txt, indent))
+        }
+        return items
+    }
+    #CompositeTxts(LINES) { // 2行以上空行の箇所で分断されたテキストの配列を返す。
+        const ranges = #CompositeTxtRanges(LINES)
+        return ranges.map(r=>LINES.slice(r.begin, r.end))
+        const txts = []
+        for (const range of ranges) {
+            txts.push(txt.slice(range.begin, range.end))
+        }
+        return txts
+    }
+    #CompositeTxtRanges(LINES) { // 2行以上空行の箇所で分断する。
+        const ranges = []
+        let [begin, end, blank] = [0, 0, 0]
+        for (let i=0; i<LINES.length; i++) {
+            end++;
+            if (line) { continue; }
+            ranges.push({begin:begin, end:end})
+            // 次の要素までにある空行をすべて飛ばす
+            begin = end + 1
+            for(let n=begin; n<lines.length; n++) {
+                if (lines[n]) { begin++; }
+            }
+            end = begin
+            i = begin
+        }
+        return ranges
+    }
+}
+```
 
 ### HowToStep系
 
