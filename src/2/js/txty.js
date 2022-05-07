@@ -71,15 +71,43 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
             depth = this.#getDepth(line, root.indentText)
             this.#validDepth(depth, preDepth)
             //const node = Txty.line(line.slice(root.indentText.length * depth), root.indent)
-            const node = Txty.line(line)
+            //const node = Txty.line(line)
+            const node = {content:Txty.line(line.trim()), nodes:[]}
+            console.log(preDepth, depth, node)
+
+            if (1 < parents.length) {
+                if (preDepth === depth) { parents.pop(); }
+                //if (preDepth === depth) { }
+                else if (preDepth < depth) { }
+                else if (depth < preDepth) { parents.pop(); }
+            }
+            if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
+
+            //if (preDepth < depth) { parents.push(node); }
+            /*
+            parents.push(node)
+            if (preDepth === depth) { parents.pop(); }
+            else if (preDepth < depth) { }
+            else if (depth < preDepth) { parents.pop(); }
+            */
+            let parent = parents[parents.length-1]
+            console.log((parents.length-1), parent)
+            parent.nodes.push(node);
+
+            if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
+
+            parents.push(node)
+            /*
             let parent = parents[parents.length-1]
             if (preDepth === depth) { parent.nodes.push(node); }
-            else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].push(node); }
+            //else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].push(node); }
             //else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].nodes.push(node); }
+            else if (preDepth < depth) { parents.push(node); parents[parents.length-1].nodes.push(node); }
             else if (depth < preDepth) { parents.pop(); parent.nodes.push(node); }
             else if (preDepth < depth) { parent.nodes.push(node); }
             if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
             //root.nodes.push(node)
+            */
         }
         return root
     }

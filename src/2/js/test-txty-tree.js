@@ -5,6 +5,12 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         this.#testMinimum()
         this.#testEndBlank()
         this.#testBeginBlank()
+
+        this.#testBeginIndent()
+        this.#testTop2()
+        this.#testTop3()
+        this.#testChild()
+
         this.#testMinimum2()
         this.#testMinimum3()
         this.#testTwo()
@@ -41,9 +47,14 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         console.assert(Txty.Indent.Space4 === actual.indentText)
         console.assert(1 === actual.maxDepth)
         console.assert(1 === actual.nodes.length)
-        console.assert(actual.nodes[0].hasOwnProperty('name'))
-        console.assert(actual.nodes[0].hasOwnProperty('options'))
-        console.assert(name === actual.nodes[0].name)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert(name === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
     }
     #testEndBlank() {
         const name = '１ブロック目'
@@ -58,9 +69,14 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         console.assert(Txty.Indent.Space4 === actual.indentText)
         console.assert(1 === actual.maxDepth)
         console.assert(1 === actual.nodes.length)
-        console.assert(actual.nodes[0].hasOwnProperty('name'))
-        console.assert(actual.nodes[0].hasOwnProperty('options'))
-        console.assert(name === actual.nodes[0].name)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert(name === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
     }
     #testBeginBlank() {
         const name = '１ブロック目'
@@ -75,9 +91,134 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         console.assert(Txty.Indent.Space4 === actual.indentText)
         console.assert(1 === actual.maxDepth)
         console.assert(1 === actual.nodes.length)
-        console.assert(actual.nodes[0].hasOwnProperty('name'))
-        console.assert(actual.nodes[0].hasOwnProperty('options'))
-        console.assert(name === actual.nodes[0].name)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert(name === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+    }
+    #testBeginIndent() {
+        const name = '最初にインデントがあっても無視される'
+        const actual = Txty.tree(`${Txty.Indent.Space4}${name}`)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(1 === actual.maxDepth)
+        console.assert(1 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert(name === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+    }
+    #testTop2() {
+        const actual = Txty.tree('一件目\n二件目')
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(1 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('一件目' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('二件目' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+    }
+    #testTop3() {
+        const actual = Txty.tree('一件目\n二件目\n三件目')
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(1 === actual.maxDepth)
+        console.assert(3 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('一件目' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('二件目' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+
+        console.assert(actual.nodes[2].hasOwnProperty('content'))
+        console.assert(actual.nodes[2].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[2].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[2].content.hasOwnProperty('options'))
+        console.assert('三件目' === actual.nodes[2].content.name)
+        console.assert(Array.isArray(actual.nodes[2].content.options))
+        console.assert(0 === actual.nodes[2].content.options.length)
+    }
+
+    #testChild() {
+        const txt = `
+親
+    子
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(2 === actual.maxDepth)
+        console.assert(1 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(1 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
     }
 
     #testMinimum2() {
