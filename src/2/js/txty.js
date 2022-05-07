@@ -4,10 +4,11 @@ class TxtyLinesError extends TxtyError {}
 class TxtyTreeError extends TxtyError {}
 class TxtyCompositeError extends TxtyError {}
 class Txty {
-    static line(line, indent='    ') { return new TxtyLineParser().generate(line, indent); }
-    static lines(txt, indent='    ') { return new TxtyLinesParser().generate(txt, indent); }
-    static tree(line, indent='    ') { return new TxtyTreeParser().generate(txt, indent); }
-    static composite(line, indent='    ') { return new TxtyCompositeParser().generate(txt, indent); }
+    static line(line, indent=TxtyIndent.Space4) { return new TxtyLineParser(indent).generate(line); }
+    static lines(txt, indent=TxtyIndent.Space4) { return new TxtyLinesParser(indent).generate(txt); }
+    static tree(txt, indent=TxtyIndent.Space4) { return new TxtyTreeParser(indent).generate(txt); }
+    static composite(txt, indent=TxtyIndent.Space4) { return new TxtyCompositeParser(indent).generate(txt); }
+    static get Indent() { return TxtyIndent; }
     /*
     static get Tab { return TxtyIndent.Tab; }
     static get Space2 { return TxtyIndent.Space2; }
@@ -25,11 +26,12 @@ class TxtyIndent {
     */
 }
 class TxtyParser {
-    constructor() { this.LINES = null; this.indent = TxtyIndent.Space4; }
+    //constructor() { this.LINES = null; this.indent = TxtyIndent.Space4; }
+    constructor(indent=TxtyIndent.Space4) { this.LINES = null; this.INDENT = indent; }
     generate(txt) { this.LINES = txt.trim().split(/\r\n|\n/); }
 }
 class TxtyLineParser extends TxtyParser {
-    generate(line, indent='    ') {
+    generate(line, indent=TxtyIndent.Space4) {
 //        super.generate(txt)
         if (!line.trim()) { throw new TxtyLineError('引数lineには空白文字以外の字がひとつ以上必要です。'); }
         const obj = {}
@@ -40,7 +42,7 @@ class TxtyLineParser extends TxtyParser {
     }
 }
 class TxtyLinesParser extends TxtyParser {
-    generate(txt, indent='    ') {
+    generate(txt, indent=TxtyIndent.Space4) {
         const list = []
         super.generate(txt)
         const blocks = TxtyBlock.blocks(this.LINES)
@@ -54,16 +56,65 @@ class TxtyLinesParser extends TxtyParser {
         return list
     }
 }
-class TxtyTreeParser extends TxtyParser {
-    generate(txt, indent='    ') {
+class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジェクトを返す
+    generate(txt, indent=TxtyIndent.Space4) {
         super.generate(txt)
+        const root = {}
+        root.indentText = (this.INDENT) ? this.INDENT : this.#guessIndentText()
+//        root.indentText = this.#guessIndentText(this.LINES)
+        root.maxDepth = 1
+        root.nodes = []
+        let [depth, preDepth] = [1, 1]
+        const parents = [root]
         for (const line of this.LINES) {
-
+            if (!line) { break; }
+            depth = this.#getDepth(line, root.indentText)
+            this.#validDepth(depth, preDepth)
+            //const node = Txty.line(line.slice(root.indentText.length * depth), root.indent)
+            const node = Txty.line(line)
+            let parent = parents[parents.length-1]
+            if (preDepth === depth) { parent.nodes.push(node); }
+            else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].push(node); }
+            //else if (preDepth < depth) { parents.push(node); parent.nodes[parent.nodes.length-1].nodes.push(node); }
+            else if (depth < preDepth) { parents.pop(); parent.nodes.push(node); }
+            else if (preDepth < depth) { parent.nodes.push(node); }
+            if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
+            //root.nodes.push(node)
         }
+        return root
     }
+    #getParent(root, depth) {
+        let target = root
+        for (let i=1; i<depth; i++) {
+            if (!target.hasOwnProperty('nodes')) { target.nodes = []; }
+            target = target.nodes
+        }
+        return target
+    }
+    #addChild(parent, child) {
+        if (!parent.hasOwnProperty('nodes')) { parent.nodes = []; }
+        parent.nodes.push(child)
+    }
+    #validDepth(depth, preDepth) {
+        if (0 < depth && (depth === preDepth || depth === preDepth + 1 || depth === preDepth - 1)) { return true; }
+        throw TextElementIndentDepthError(`テキストの階層が不正です。前の行と同じかひとつだけ深いインデントのみ許可されます。`)
+    }
+    #getDepth(line, indent) {
+        let depth = 1;
+        while (line.startsWith(indent.repeat(depth))) { depth++ }
+        return depth
+    }
+    #guessIndentText() { // テキスト内のインデント文字を推測する（最初に見つかった所定のインデント文字がそれとする。以降それをインデント文字として使われることを期待する）
+        const INDENTS = ['\t'].concat([2,4,8].map((i)=>' '.repeat(i)))
+        for (const line of this.LINES) {
+            return INDENTS.find(indent=>line.startsWith(indent))
+        }
+        throw new TxtyTreeError(`インデント文字の推測に失敗しました。入力テキストのうち少なくともひとつの行の先頭にTABまたは半角スペース2,4,8のいずれかを含めてください。`)
+    }
+
 }
 class TxtyCompositeParser extends TxtyParser {
-    generate(txt, indent='    ') {
+    generate(txt, indent=TxtyIndent.Space4) {
         super.generate(txt)
         for (const line of this.LINES) {
 
