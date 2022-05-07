@@ -1,39 +1,33 @@
 class UnitTestError extends ExtensibleCustomError {}
-class TestTxtyLines { // 単体テスト（一行テキスト解析）
+class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     test() {
-        this.#testTxtBlockRanges()
+        this.#testBlank()
+        this.#testEndBlank()
+        this.#testBeginBlank()
         this.#testMinimum()
         this.#testMinimum2()
         this.#testMinimum3()
         this.#testTwo()
-        /*
-        this.#testBlankError()
-        this.#testMinimum()
-        this.#testMinimumOption1()
-        this.#testOption1Tab()
-        this.#testOption2Tab()
-        this.#testOption3Tab()
-        this.#testOption1Space2()
-        this.#testOption2Space2()
-        this.#testOption3Space2()
-        */
+
+        this.#test1Block2Property()
+        this.#test2Block1Property()
+        this.#test2Block1PropertyOverBlank3()
+        this.#test2Block1PropertyOverBlank4()
+        this.#test2Block1PropertyOverBlank5()
+        this.#test1Block1Property1Option()
+        this.#test2Block1Property1Option()
+        this.#test2Block2Property()
+        this.#test3Block2Property()
+        this.#test3Block2PropertyOptions()
     }
-    #testTxtBlockRanges() {
-        const LINES = `１ブロック目\n\n２ブロック目`.split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+    #testBlank() {
+        const txt = ``
+        const actual = Txty.lines(txt)
         console.log(actual)
-        console.log(LINES.slice(actual[0].begin, actual[0].end))
-        console.log(LINES.slice(actual[1].begin, actual[1].end))
-        console.log(LINES.slice(actual[0].begin, actual[0].end).filter(v => v))
-        console.log(LINES.slice(actual[1].begin, actual[1].end).filter(v => v))
         console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-        console.assert(actual[0].hasOwnProperty('begin'))
-        console.assert(actual[0].hasOwnProperty('end'))
-        console.assert(0 === actual[0].begin)
-        console.assert(1 === actual[0].end)
-        console.assert(3 === actual[1].begin)
-        console.assert(4 === actual[1].end)
+        console.assert(1 === actual.length)
+        console.assert(Array.isArray(actual[0]))
+        console.assert(0 === actual[0].length)
     }
     #testMinimum() {
         const name = '一件のみ'
@@ -48,6 +42,38 @@ class TestTxtyLines { // 単体テスト（一行テキスト解析）
         console.assert(Array.isArray(actual[0][0].options))
         console.assert(0 === actual[0][0].options.length)
     }
+    #testEndBlank() {
+        const name = '１ブロック目'
+        const txt = `${name}\n\n`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(1 === actual.length)
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert(name === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+    }
+    #testBeginBlank() {
+        const name = '１ブロック目'
+        const txt = `\n\n${name}`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(1 === actual.length)
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert(name === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+        console.log(actual)
+    }
+
     #testMinimum2() {
         const actual = Txty.lines('一件目\n二件目')
         console.assert(Array.isArray(actual))
@@ -110,161 +136,327 @@ class TestTxtyLines { // 単体テスト（一行テキスト解析）
         console.assert(Array.isArray(actual[1][0].options))
         console.assert(0 === actual[1][0].options.length)
     }
-    /*
-    #testBlankError() {
-        try { Txty.line(''); }
-        catch (e) {
-            if (!(e instanceof TxtyLineError)) { throw new UnitTestError(`例外の型が期待値と違います。`);  }
-            if (e.message !== `引数lineには空白文字以外の字がひとつ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
-        }
+    #test1Block2Property() {
+        const txt = `１ブロック目の１行目\n１ブロック目の２行目`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(1 === actual.length)
+        console.assert(Array.isArray(actual[0]))
+        console.assert(2 === actual[0].length)
+
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目の１行目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(actual[0][1].hasOwnProperty('name'))
+        console.assert(actual[0][1].hasOwnProperty('options'))
+        console.assert('１ブロック目の２行目' === actual[0][1].name)
+        console.assert(Array.isArray(actual[0][1].options))
+        console.assert(0 === actual[0][1].options.length)
     }
-    #testMinimum() {
-        const expected = '必須値のみ'
-        const actual = Txty.line(expected)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(expected === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(0 === actual.options.length)
+    #test2Block1Property() {
+        const txt = `１ブロック目\n\n２ブロック目`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(1 === actual[1].length)
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(0 === actual[1][0].options.length)
     }
-    #testMinimumOption1() {
-        const name = '必須値'
-        const indent = '    '
-        const option = 'オプション値'
-        const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(1 === actual.options.length)
-        console.assert(option === actual.options[0])
+    #test2Block1PropertyOverBlank3() {
+        const txt = `１ブロック目\n\n\n２ブロック目`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(1 === actual[1].length)
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(0 === actual[1][0].options.length)
     }
-    #testOption1Tab() {
-        const name = '必須値'
-        const indent = '\t'
-        const option = 'オプション値'
-        const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(1 === actual.options.length)
-        console.assert(option === actual.options[0])
+    #test2Block1PropertyOverBlank4() {
+        const txt = `１ブロック目\n\n\n\n２ブロック目`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(1 === actual[1].length)
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(0 === actual[1][0].options.length)
     }
-    #testOption2Tab() {
-        const name = '必須値'
-        const indent = '\t'
-        const options = ['オプション値1', 'オプション値2']
-        const txt = `${name}${indent}${options[0]}${indent}${options[1]}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(2 === actual.options.length)
-        console.assert(options[0] === actual.options[0])
-        console.assert(options[1] === actual.options[1])
+    #test2Block1PropertyOverBlank5() {
+        const txt = `１ブロック目\n\n\n\n\n２ブロック目`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(1 === actual[1].length)
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(0 === actual[1][0].options.length)
     }
-    #testOption3Tab() {
-        const name = '必須値'
-        const indent = '\t'
-        const options = ['オプション値1', 'オプション値2', 'オプション値3']
-        const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(3 === actual.options.length)
-        console.assert(options[0] === actual.options[0])
-        console.assert(options[1] === actual.options[1])
-        console.assert(options[2] === actual.options[2])
+    #test1Block1Property1Option() {
+        const txt = `１ブロック目    １ブロック目のオプション１`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(1 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(1 === actual[0][0].options.length)
+        console.assert('１ブロック目のオプション１' === actual[0][0].options[0])
     }
-    #testOption1Space2() {
-        const name = '必須値'
-        const indent = ' '.repeat(2)
-        const option = 'オプション値'
-        const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(1 === actual.options.length)
-        console.assert(option === actual.options[0])
+    #test2Block1Property1Option() {
+        const txt = `１ブロック目    １ブロック目のオプション１\n\n２ブロック目    ２ブロック目のオプション１`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(1 === actual[0][0].options.length)
+        console.assert('１ブロック目のオプション１' === actual[0][0].options[0])
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(1 === actual[1].length)
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(1 === actual[1][0].options.length)
+        console.assert('２ブロック目のオプション１' === actual[1][0].options[0])
     }
-    #testOption2Space2() {
-        const name = '必須値'
-        const indent = ' '.repeat(2)
-        const options = ['オプション値1', 'オプション値2']
-        const txt = `${name}${indent}${options[0]}${indent}${options[1]}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(2 === actual.options.length)
-        console.assert(options[0] === actual.options[0])
-        console.assert(options[1] === actual.options[1])
+    #test2Block2Property() {
+        const txt = `１ブロック目１プロパティ\n１ブロック目２プロパティ\n\n２ブロック目１プロパティ\n２ブロック目２プロパティ`.trim()
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(2 === actual[0].length)
+
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目１プロパティ' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(actual[0][1].hasOwnProperty('name'))
+        console.assert(actual[0][1].hasOwnProperty('options'))
+        console.assert('１ブロック目２プロパティ' === actual[0][1].name)
+        console.assert(Array.isArray(actual[0][1].options))
+        console.assert(0 === actual[0][1].options.length)
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(2 === actual[1].length)
+
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目１プロパティ' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(0 === actual[1][0].options.length)
+
+        console.assert(actual[1][1].hasOwnProperty('name'))
+        console.assert(actual[1][1].hasOwnProperty('options'))
+        console.assert('２ブロック目２プロパティ' === actual[1][1].name)
+        console.assert(Array.isArray(actual[1][1].options))
+        console.assert(0 === actual[1][1].options.length)
     }
-    #testOption3Space2() {
-        const name = '必須値'
-        const indent = ' '.repeat(2)
-        const options = ['オプション値1', 'オプション値2', 'オプション値3']
-        const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(3 === actual.options.length)
-        console.assert(options[0] === actual.options[0])
-        console.assert(options[1] === actual.options[1])
-        console.assert(options[2] === actual.options[2])
+    #test3Block2Property() {
+        const txt = `
+１ブロック目１プロパティ
+１ブロック目２プロパティ
+
+２ブロック目１プロパティ
+２ブロック目２プロパティ
+
+３ブロック目１プロパティ
+３ブロック目２プロパティ`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(3 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(2 === actual[0].length)
+
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目１プロパティ' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(actual[0][1].hasOwnProperty('name'))
+        console.assert(actual[0][1].hasOwnProperty('options'))
+        console.assert('１ブロック目２プロパティ' === actual[0][1].name)
+        console.assert(Array.isArray(actual[0][1].options))
+        console.assert(0 === actual[0][1].options.length)
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(2 === actual[1].length)
+
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目１プロパティ' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(0 === actual[1][0].options.length)
+
+        console.assert(actual[1][1].hasOwnProperty('name'))
+        console.assert(actual[1][1].hasOwnProperty('options'))
+        console.assert('２ブロック目２プロパティ' === actual[1][1].name)
+        console.assert(Array.isArray(actual[1][1].options))
+        console.assert(0 === actual[1][1].options.length)
+
+        console.assert(Array.isArray(actual[2]))
+        console.assert(2 === actual[2].length)
+
+        console.assert(actual[2][0].hasOwnProperty('name'))
+        console.assert(actual[2][0].hasOwnProperty('options'))
+        console.assert('３ブロック目１プロパティ' === actual[2][0].name)
+        console.assert(Array.isArray(actual[2][0].options))
+        console.assert(0 === actual[2][0].options.length)
+
+        console.assert(actual[2][1].hasOwnProperty('name'))
+        console.assert(actual[2][1].hasOwnProperty('options'))
+        console.assert('３ブロック目２プロパティ' === actual[2][1].name)
+        console.assert(Array.isArray(actual[2][1].options))
+        console.assert(0 === actual[2][1].options.length)
     }
-    #testOption1Space4() {
-        const name = '必須値'
-        const indent = ' '.repeat(4)
-        const option = 'オプション値'
-        const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(1 === actual.options.length)
-        console.assert(option === actual.options[0])
+
+    #test3Block2PropertyOptions() {
+        const txt = `
+    
+
+１ブロック目１プロパティ
+１ブロック目２プロパティ    オプション121
+
+２ブロック目１プロパティ    オプション211    オプション212
+２ブロック目２プロパティ
+
+
+
+３ブロック目１プロパティ
+３ブロック目２プロパティ
+
+
+    
+`
+        const actual = Txty.lines(txt)
+        console.log(actual)
+        console.assert(Array.isArray(actual))
+        console.assert(3 === actual.length)
+
+        console.assert(Array.isArray(actual[0]))
+        console.assert(2 === actual[0].length)
+
+        console.assert(actual[0][0].hasOwnProperty('name'))
+        console.assert(actual[0][0].hasOwnProperty('options'))
+        console.assert('１ブロック目１プロパティ' === actual[0][0].name)
+        console.assert(Array.isArray(actual[0][0].options))
+        console.assert(0 === actual[0][0].options.length)
+
+        console.assert(actual[0][1].hasOwnProperty('name'))
+        console.assert(actual[0][1].hasOwnProperty('options'))
+        console.assert('１ブロック目２プロパティ' === actual[0][1].name)
+        console.assert(Array.isArray(actual[0][1].options))
+        console.assert(1 === actual[0][1].options.length)
+        console.assert('オプション121' === actual[0][1].options[0])
+
+        console.assert(Array.isArray(actual[1]))
+        console.assert(2 === actual[1].length)
+
+        console.assert(actual[1][0].hasOwnProperty('name'))
+        console.assert(actual[1][0].hasOwnProperty('options'))
+        console.assert('２ブロック目１プロパティ' === actual[1][0].name)
+        console.assert(Array.isArray(actual[1][0].options))
+        console.assert(2 === actual[1][0].options.length)
+        console.assert('オプション211' === actual[1][0].options[0])
+        console.assert('オプション212' === actual[1][0].options[1])
+
+        console.assert(actual[1][1].hasOwnProperty('name'))
+        console.assert(actual[1][1].hasOwnProperty('options'))
+        console.assert('２ブロック目２プロパティ' === actual[1][1].name)
+        console.assert(Array.isArray(actual[1][1].options))
+        console.assert(0 === actual[1][1].options.length)
+
+        console.assert(Array.isArray(actual[2]))
+        console.assert(2 === actual[2].length)
+
+        console.assert(actual[2][0].hasOwnProperty('name'))
+        console.assert(actual[2][0].hasOwnProperty('options'))
+        console.assert('３ブロック目１プロパティ' === actual[2][0].name)
+        console.assert(Array.isArray(actual[2][0].options))
+        console.assert(0 === actual[2][0].options.length)
+
+        console.assert(actual[2][1].hasOwnProperty('name'))
+        console.assert(actual[2][1].hasOwnProperty('options'))
+        console.assert('３ブロック目２プロパティ' === actual[2][1].name)
+        console.assert(Array.isArray(actual[2][1].options))
+        console.assert(0 === actual[2][1].options.length)
     }
-    #testOption2Space4() {
-        const name = '必須値'
-        const indent = ' '.repeat(4)
-        const options = ['オプション値1', 'オプション値2']
-        const txt = `${name}${indent}${options[0]}${indent}${options[1]}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(2 === actual.options.length)
-        console.assert(options[0] === actual.options[0])
-        console.assert(options[1] === actual.options[1])
-    }
-    #testOption3Space4() {
-        const name = '必須値'
-        const indent = ' '.repeat(4)
-        const options = ['オプション値1', 'オプション値2', 'オプション値3']
-        const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
-        const actual = Txty.line(txt, indent)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('options'))
-        console.assert(name === actual.name)
-        console.assert(Array.isArray(actual.options))
-        console.assert(3 === actual.options.length)
-        console.assert(options[0] === actual.options[0])
-        console.assert(options[1] === actual.options[1])
-        console.assert(options[2] === actual.options[2])
-    }
-    */
 }

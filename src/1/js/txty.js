@@ -41,10 +41,17 @@ class TxtyLineParser extends TxtyParser {
 }
 class TxtyLinesParser extends TxtyParser {
     generate(txt, indent='    ') {
+        const list = []
         super.generate(txt)
-        for (const line of this.LINES) {
-
+        const blocks = TxtyBlock.blocks(this.LINES)
+        for (const block of TxtyBlock.blocks(this.LINES)) {
+            const nodes = []
+            for (const line of block) {
+                nodes.push(Txty.line(line))
+            }
+            list.push(nodes)
         }
+        return list
     }
 }
 class TxtyTreeParser extends TxtyParser {
