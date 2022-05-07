@@ -63,6 +63,31 @@ class TxtyCompositeParser extends TxtyParser {
         }
     }
 }
+class TxtyBlock { // 2行以上空行の箇所で分断されたテキスト行配列リスト
+    static blocks(LINES) {
+        const ranges = this.ranges(LINES)
+        return this.ranges(LINES).map(r=>LINES.slice(r.begin, r.end).filter(v=>v))
+    }
+    static ranges(LINES) { // 2行以上空行の箇所で分断する。
+        if (!Array.isArray(LINES)) { throw new TxtyError(`引数LINESは配列であるべきです。`); }
+        if (0 === LINES.length) { return []; }
+        if (1 === LINES.length) { return [{begin:0, end:1}]; }
+        const ranges = []
+        let [begin, end, validEnd] = [0, 0, 0]
+        for (let i=0; i<LINES.length; i++) {
+            end++;
+            if (LINES[i]) { continue; }
+            ranges.push({begin:begin, end:end})
+            // 過剰な空白行を飛ばす
+            while (!LINES[i]) { i++; }
+            if (i >= LINES.length) { break; }
+            begin = i
+            end = i
+        }
+        ranges.push({begin:begin, end:LINES.length})
+        return ranges
+    }
+}
 /*
 class Txty { 
     static TxtBlockRanges(LINES) { // 2行以上空行の箇所で分断する。

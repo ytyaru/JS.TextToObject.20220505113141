@@ -1,5 +1,5 @@
 class UnitTestError extends ExtensibleCustomError {}
-class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列を返す）
+class TestTxtyBlockBlocks { // 単体テスト（2空行区切り位置配列を返す）
     test() {
         this.#testBlank()
         this.#testMinimum()
@@ -17,30 +17,26 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #testBlank() {
         const LINES = ``.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
+        console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
-        console.assert(actual[0].hasOwnProperty('begin'))
-        console.assert(actual[0].hasOwnProperty('end'))
-        console.assert(0 === actual[0].begin)
-        console.assert(1 === actual[0].end)
-        console.assert('' === LINES.slice(actual[0].begin, actual[0].end)[0])
-        console.assert(0 === LINES.slice(actual[0].begin, actual[0].end).filter(v => v).length)
+        console.assert(Array.isArray(actual[0]))
+        console.assert(0 === actual[0].length)
     }
     #testMinimum() {
         const LINES = `１ブロック目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
+        console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
-        console.assert(actual[0].hasOwnProperty('begin'))
-        console.assert(actual[0].hasOwnProperty('end'))
-        console.assert(0 === actual[0].begin)
-        console.assert(1 === actual[0].end)
-        console.assert('１ブロック目' === LINES.slice(actual[0].begin, actual[0].end)[0])
+        console.assert(Array.isArray(actual[0]))
+        console.assert(1 === actual[0].length)
+        console.assert('１ブロック目' === actual[0][0])
     }
     #testEndBlank() {
         const LINES = `１ブロック目\n\n`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -50,7 +46,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #testBeginBlank() {
         const LINES = `\n\n１ブロック目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -60,7 +56,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test1Block2Property() {
         const LINES = `１ブロック目の１行目\n１ブロック目の２行目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -72,7 +68,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test2Block1Property() {
         const LINES = `１ブロック目\n\n２ブロック目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -86,7 +82,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test2Block1PropertyOverBlank3() {
         const LINES = `１ブロック目\n\n\n２ブロック目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -100,7 +96,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test2Block1PropertyOverBlank4() {
         const LINES = `１ブロック目\n\n\n\n２ブロック目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -114,7 +110,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test2Block1PropertyOverBlank5() {
         const LINES = `１ブロック目\n\n\n\n\n２ブロック目`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -128,7 +124,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test1Block1Property1Option() {
         const LINES = `１ブロック目    １ブロック目のオプション１`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -139,7 +135,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test2Block1Property1Option() {
         const LINES = `１ブロック目    １ブロック目のオプション１\n\n２ブロック目    ２ブロック目のオプション１`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -153,7 +149,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
     }
     #test2Block2Property() {
         const LINES = `１ブロック目１プロパティ\n１ブロック目２プロパティ\n\n２ブロック目１プロパティ\n２ブロック目２プロパティ`.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
@@ -178,7 +174,7 @@ class TestTxtyTxtBlockRanges { // 単体テスト（2空行区切り位置配列
 ３ブロック目１プロパティ
 ３ブロック目２プロパティ
 `.trim().split(/\r\n|\n/)
-        const actual = Txty.TxtBlockRanges(LINES)
+        const actual = TxtyBlock.blocks(LINES)
         console.assert(Array.isArray(actual))
         console.assert(3 === actual.length)
         console.assert(actual[0].hasOwnProperty('begin'))
