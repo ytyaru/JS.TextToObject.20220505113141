@@ -1,6 +1,7 @@
 class UnitTestError extends ExtensibleCustomError {}
 class TestTxtyLines { // 単体テスト（一行テキスト解析）
     test() {
+        this.#testTxtBlockRanges()
         this.#testMinimum()
         this.#testMinimum2()
         this.#testMinimum3()
@@ -16,6 +17,23 @@ class TestTxtyLines { // 単体テスト（一行テキスト解析）
         this.#testOption2Space2()
         this.#testOption3Space2()
         */
+    }
+    #testTxtBlockRanges() {
+        const LINES = `１ブロック目\n\n２ブロック目`.split(/\r\n|\n/)
+        const actual = Txty.TxtBlockRanges(LINES)
+        console.log(actual)
+        console.log(LINES.slice(actual[0].begin, actual[0].end))
+        console.log(LINES.slice(actual[1].begin, actual[1].end))
+        console.log(LINES.slice(actual[0].begin, actual[0].end).filter(v => v))
+        console.log(LINES.slice(actual[1].begin, actual[1].end).filter(v => v))
+        console.assert(Array.isArray(actual))
+        console.assert(2 === actual.length)
+        console.assert(actual[0].hasOwnProperty('begin'))
+        console.assert(actual[0].hasOwnProperty('end'))
+        console.assert(0 === actual[0].begin)
+        console.assert(1 === actual[0].end)
+        console.assert(3 === actual[1].begin)
+        console.assert(4 === actual[1].end)
     }
     #testMinimum() {
         const name = '一件のみ'

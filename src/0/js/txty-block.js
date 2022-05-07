@@ -3,26 +3,39 @@ class TxtyLineError extends TxtyError {}
 class TxtyLinesError extends TxtyError {}
 class TxtyTreeError extends TxtyError {}
 class TxtyCompositeError extends TxtyError {}
+
+class Txty { // テスト用。プライベートメソッドだが単体テストのため一時的に公開する。
+    static TxtBlockRanges(LINES) { // 2行以上空行の箇所で分断する。
+        if (!Array.isArray(LINES)) { throw new TxtyError(`引数LINESは配列であるべきです。`); }
+        if (0 === LINES.length) { return []; }
+        if (1 === LINES.length) { return [{begin:0, end:1}]; }
+        const ranges = []
+        let [begin, end, validEnd] = [0, 0, 0]
+        for (let i=0; i<LINES.length; i++) {
+            end++;
+            //console.log(i, LINES[i], '---------')
+            if (LINES[i]) { continue; }
+            ranges.push({begin:begin, end:end})
+            begin = end
+            i++;
+        }
+        //ranges.push({begin:begin, end:end})
+        ranges.push({begin:begin, end:LINES.length})
+        return ranges
+    }
+}
+
+/*
 class Txty {
     static line(line, indent='    ') { return new TxtyLineParser().generate(line, indent); }
     static lines(txt, indent='    ') { return new TxtyLinesParser().generate(txt, indent); }
     static tree(line, indent='    ') { return new TxtyTreeParser().generate(txt, indent); }
     static composite(line, indent='    ') { return new TxtyCompositeParser().generate(txt, indent); }
-    /*
-    static get Tab { return TxtyIndent.Tab; }
-    static get Space2 { return TxtyIndent.Space2; }
-    static get Space4 { return TxtyIndent.Space4; }
-    */
 }
 class TxtyIndent {
     static get Tab() { return '\t'; }
     static get Space2() { return ' '.repeat(2); }
     static get Space4() { return ' '.repeat(4); }
-    /*
-    get Tab() { return '\t'; }
-    get Space2() { return ' '.repeat(2); }
-    get Space4() { return ' '.repeat(4); }
-    */
 }
 class TxtyParser {
     constructor() { this.LINES = null; this.indent = TxtyIndent.Space4; }
@@ -63,23 +76,9 @@ class TxtyCompositeParser extends TxtyParser {
         }
     }
 }
-class 
-    static TxtBlockRanges(LINES) { // 2行以上空行の箇所で分断する。
-        if (!Array.isArray(LINES)) { throw new TxtyError(`引数LINESは配列であるべきです。`); }
-        if (0 === LINES.length) { return []; }
-        if (1 === LINES.length) { return [{begin:0, end:1}]; }
-        const ranges = []
-        let [begin, end, validEnd] = [0, 0, 0]
-        for (let i=0; i<LINES.length; i++) {
-            end++;
-            //console.log(i, LINES[i], '---------')
-            if (LINES[i]) { continue; }
-            ranges.push({begin:begin, end:end})
-            begin = end
-        }
-        ranges.push({begin:begin, end:end})
-        return ranges
-    }
+*/
+
+
 
 /*
 class Txty {
