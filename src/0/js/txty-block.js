@@ -16,8 +16,13 @@ class Txty { // テスト用。プライベートメソッドだが単体テス�
             //console.log(i, LINES[i], '---------')
             if (LINES[i]) { continue; }
             ranges.push({begin:begin, end:end})
-            begin = end
-            i++;
+            // 過剰な空白行を飛ばす
+            while (!LINES[i]) { i++; }
+            if (i >= LINES.length) { break; }
+            begin = i
+            end = i
+//            begin = end
+//            i++;
         }
         //ranges.push({begin:begin, end:end})
         ranges.push({begin:begin, end:LINES.length})
