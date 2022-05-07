@@ -609,6 +609,25 @@ class TreeElement {
 }
 ```
 
+### 名前
+
+* TxtyElement
+    * node
+    * list
+    * tree
+    * composite
+* TxtyBlock（2空行ごとに区切られたテキスト集合）
+    * ranges
+    * blocks
+* TxtyIndent
+    * Tab
+    * Space2
+    * Space4
+
+　TxtyはTSVの行指向版。TSVは列位置でデータのキーを網羅する。Txtyは行位置でデータのキーを網羅する。
+
+　Txtyのメタ文字は`\n`,`\t`(` `(2,4))である。つまり改行とインデントがメタ文字。よってデータには複数行データを含めることが出来ない。エスケープ文字`\n`にすれば含められるが、可読性がいちじるしく低下するため非推奨。
+
 ### HowToStep系
 
 　[Google schema.org HowTo][]のうち`HowTo`配下の`HowToSection`, `HowToStep`, `HowToDirection`, `HowToTip`を生成する。
