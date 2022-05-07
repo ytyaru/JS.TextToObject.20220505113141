@@ -10,6 +10,7 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         this.#testTop2()
         this.#testTop3()
         this.#testChild()
+        this.#testGrandChild()
 
         this.#testMinimum2()
         this.#testMinimum3()
@@ -220,6 +221,52 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
         console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
     }
+
+    #testGrandChild() {
+        const txt = `
+親
+    子
+        孫
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(3 === actual.maxDepth)
+        console.assert(1 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(1 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫' === actual.nodes[0].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].nodes[0].content.options.length)
+
+    }
+
 
     #testMinimum2() {
         const actual = Txty.tree('一件目\n二件目')

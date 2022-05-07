@@ -81,7 +81,9 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
                 else if (preDepth < depth) { }
                 else if (depth < preDepth) { parents.pop(); }
             }
-            if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
+            console.log(root.maxDepth, parents.length)
+            if (root.maxDepth < parents.length) { root.maxDepth = parents.length; }
+            console.log(root.maxDepth, parents.length)
 
             //if (preDepth < depth) { parents.push(node); }
             /*
@@ -94,8 +96,8 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
             console.log((parents.length-1), parent)
             parent.nodes.push(node);
 
-            if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
-
+            //if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
+            preDepth = depth
             parents.push(node)
             /*
             let parent = parents[parents.length-1]
@@ -125,7 +127,7 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
     }
     #validDepth(depth, preDepth) {
         if (0 < depth && (depth === preDepth || depth === preDepth + 1 || depth === preDepth - 1)) { return true; }
-        throw TextElementIndentDepthError(`テキストの階層が不正です。前の行と同じかひとつだけ深いインデントのみ許可されます。`)
+        throw new TxtyTreeError(`テキストの階層が不正です。前の行と同じかひとつだけ深いインデントのみ許可されます。${depth}, ${preDepth}`)
     }
     #getDepth(line, indent) {
         let depth = 1;
