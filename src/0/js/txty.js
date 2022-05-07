@@ -63,7 +63,8 @@ class TxtyCompositeParser extends TxtyParser {
         }
     }
 }
-class 
+/*
+class Txty { 
     static TxtBlockRanges(LINES) { // 2行以上空行の箇所で分断する。
         if (!Array.isArray(LINES)) { throw new TxtyError(`引数LINESは配列であるべきです。`); }
         if (0 === LINES.length) { return []; }
@@ -80,7 +81,8 @@ class
         ranges.push({begin:begin, end:end})
         return ranges
     }
-
+}
+*/
 /*
 class Txty {
     static line(line, indent='    ') { // 1行テキストから名前とオプションのオブジェクトを返す。
