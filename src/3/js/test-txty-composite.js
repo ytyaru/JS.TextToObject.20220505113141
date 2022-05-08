@@ -12,13 +12,6 @@ class TestTxtyComposite { // 単体テスト（複合テキスト解析）
         const actual = Txty.composite('')
         console.assert(Array.isArray(actual))
         console.assert(0 === actual.length)
-        /*
-        try { Txty.composite(''); }
-        catch (e) {
-            if (!(e instanceof TxtyLineError)) { throw new UnitTestError(`例外の型が期待値と違います。`);  }
-            if (e.message !== `引数lineには空白文字以外の字がひとつ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
-        }
-        */
     }
     #testMinimum() {
         const expected = '必須値のみ'

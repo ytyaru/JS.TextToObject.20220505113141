@@ -40,22 +40,6 @@ class TxtyLineParser extends TxtyParser {
     }
 }
 class TxtyLinesParser extends TxtyParser {
-    /*
-    generate(txt, indent=null) {
-        super.setIndent(indent)
-        const list = []
-        super.generate(txt)
-        const blocks = TxtyBlock.blocks(this.LINES)
-        for (const block of TxtyBlock.blocks(this.LINES)) {
-            const nodes = []
-            for (const line of block) {
-                nodes.push(Txty.line(line, this.INDENT))
-            }
-            list.push(nodes)
-        }
-        return list
-    }
-    */
     generate(txt, indent=null) {
         super.generate(txt)
         return this.generateFromLines(this.LINES)
@@ -75,31 +59,6 @@ class TxtyLinesParser extends TxtyParser {
     }
 }
 class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジェクトを返す
-    /*
-    generate(txt, indent=null) {
-        if (!indent && !this.INDENT) { this.INDENT = super.guessIndentText(); }
-        super.generate(txt)
-        const root = {}
-        root.indentText = this.INDENT
-        root.maxDepth = 1
-        root.nodes = []
-        if (1 === this.LINES.length && !this.LINES[0]) { return root; }
-        let [depth, preDepth] = [1, 1]
-        const parents = [root]
-        for (const line of this.LINES) {
-            if (!line) { throw new TxtyTreeError(`途中に空行があってはなりません。`); }
-            depth = this.#getDepth(line, root.indentText)
-            this.#validDepth(depth, preDepth)
-            const node = {content:Txty.line(line.trim()), nodes:[]}
-            const parent = this.#getParent(parents, depth, preDepth)
-            if (root.maxDepth < parents.length) { root.maxDepth = parents.length; }
-            parent.nodes.push(node);
-            preDepth = depth
-            parents.push(node)
-        }
-        return root
-    }
-    */
     generate(txt, indent=null) {
         super.generate(txt)
         return this.generateFromLines(this.LINES, indent)
