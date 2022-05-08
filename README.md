@@ -4,6 +4,12 @@
 
 Returns JavaScript objects, arrays, Maps, etc. from plain text.
 
+* [TextToObjectToSchemaOrg][]
+* [Html.Template.Generator][]
+
+[TextToObjectToSchemaOrg]:https://ytyaru.github.io/JS.TextToObjectToSchemaOrg.20220508132053
+[Html.Template.Generator]:Html.Template.Generator.20220423144737
+
 # DEMO
 
 * [DEMO](https://ytyaru.github.io/JS.TextToObject.20220505113141/)
