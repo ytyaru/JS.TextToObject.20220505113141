@@ -100,12 +100,19 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
     }
 }
 class TxtyCompositeParser extends TxtyParser {
-    generate(txt, indent=TxtyIndent.Space4) {
+    generate(txt, indent=null) {
+        super.setIndent(indent)
+        const list = []
         super.generate(txt)
-        for (const line of this.LINES) {
-
+        if (1 === this.LINES.length && !this.LINES[0]) { return list; }
+        const blocks = TxtyBlock.blocks(this.LINES)
+        for (const block of TxtyBlock.blocks(this.LINES)) {
+            if (this.isTree(block)) { list.push(Txty.tree(block.join('\n'))); }
+            else { list.push(Txty.lines(block.join('\n'))); }
         }
+        return list
     }
+    isTree(block) { return block.some(line=>line.startsWith(this.INDENT)); }
 }
 class TxtyBlock { // 2行以上空行の箇所で分断されたテキスト行配列リスト
     static blocks(LINES) {
