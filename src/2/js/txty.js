@@ -64,26 +64,32 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
 //        root.indentText = this.#guessIndentText(this.LINES)
         root.maxDepth = 1
         root.nodes = []
+        //console.log(this.LINES, root, this.LINES.length)
+        if (1 === this.LINES.length && !this.LINES[0]) { return root; }
         let [depth, preDepth] = [1, 1]
         const parents = [root]
         for (const line of this.LINES) {
-            if (!line) { break; }
+            //if (!line) { break; }
+            if (!line) { throw new TxtyTreeError(`途中に空行があってはなりません。`); }
             depth = this.#getDepth(line, root.indentText)
             this.#validDepth(depth, preDepth)
             //const node = Txty.line(line.slice(root.indentText.length * depth), root.indent)
             //const node = Txty.line(line)
             const node = {content:Txty.line(line.trim()), nodes:[]}
-            console.log(preDepth, depth, node)
+            //console.log(preDepth, depth, node)
 
+            const parent = this.#getParent(parents, depth, preDepth)
+            /*
             if (1 < parents.length) {
                 if (preDepth === depth) { parents.pop(); }
                 //if (preDepth === depth) { }
                 else if (preDepth < depth) { }
                 else if (depth < preDepth) { parents.pop(); }
             }
-            console.log(root.maxDepth, parents.length)
+            */
+            //console.log(root.maxDepth, parents.length)
             if (root.maxDepth < parents.length) { root.maxDepth = parents.length; }
-            console.log(root.maxDepth, parents.length)
+            //console.log(root.maxDepth, parents.length)
 
             //if (preDepth < depth) { parents.push(node); }
             /*
@@ -92,8 +98,8 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
             else if (preDepth < depth) { }
             else if (depth < preDepth) { parents.pop(); }
             */
-            let parent = parents[parents.length-1]
-            console.log((parents.length-1), parent)
+            //let parent = parents[parents.length-1]
+            //console.log((parents.length-1), parent)
             parent.nodes.push(node);
 
             //if (root.maxDepth < parents.lenght) { root.maxDepth = parents.lenght; }
@@ -113,6 +119,15 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
         }
         return root
     }
+    #getParent(parents, depth, preDepth) {
+        if (1 < parents.length) {
+            if (preDepth === depth) { parents.pop(); }
+            else if (preDepth < depth) { }
+            else if (depth < preDepth) { [...Array(preDepth - depth + 1)].map(() => parents.pop()); }
+        }
+        return parents[parents.length-1]
+    }
+    /*
     #getParent(root, depth) {
         let target = root
         for (let i=1; i<depth; i++) {
@@ -125,9 +140,14 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
         if (!parent.hasOwnProperty('nodes')) { parent.nodes = []; }
         parent.nodes.push(child)
     }
+    */
     #validDepth(depth, preDepth) {
-        if (0 < depth && (depth === preDepth || depth === preDepth + 1 || depth === preDepth - 1)) { return true; }
-        throw new TxtyTreeError(`テキストの階層が不正です。前の行と同じかひとつだけ深いインデントのみ許可されます。${depth}, ${preDepth}`)
+        if (depth < 1) { throw new TxtyTreeError(`テキストツリーの階層が不正です。depthは1以上であるべきです。${depth}`); }
+        if (preDepth < depth && preDepth+1 < depth) {
+            throw new TxtyTreeError(`テキストの階層が不正です。前の行より2階層以上深いインデントです。深くするなら1層深くするだけにしてください。${depth}, ${preDepth}`)
+        }
+//        if (0 < depth && (depth === preDepth || depth === preDepth + 1 || depth === preDepth - 1)) { return true; }
+//        throw new TxtyTreeError(`テキストの階層が不正です。前の行と同じかひとつだけ深いインデントのみ許可されます。${depth}, ${preDepth}`)
     }
     #getDepth(line, indent) {
         let depth = 1;

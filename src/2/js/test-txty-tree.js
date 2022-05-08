@@ -10,22 +10,19 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         this.#testTop2()
         this.#testTop3()
         this.#testChild()
+        this.#testChild2()
         this.#testGrandChild()
+        this.#testGrandChild2()
 
-        this.#testMinimum2()
-        this.#testMinimum3()
-        this.#testTwo()
+        this.#testDepthDiff1_1_2()
+        this.#testDepthDiff1_2_1()
+        this.#testDepthDiff1_1_3()
+        this.#testDepthDiff1_3_1()
 
-        this.#test1Block2Property()
-        this.#test2Block1Property()
-        this.#test2Block1PropertyOverBlank3()
-        this.#test2Block1PropertyOverBlank4()
-        this.#test2Block1PropertyOverBlank5()
-        this.#test1Block1Property1Option()
-        this.#test2Block1Property1Option()
-        this.#test2Block2Property()
-        this.#test3Block2Property()
-        this.#test3Block2PropertyOptions()
+        this.#testMiddleBlankError()
+
+        this.#testSameDepth2_3()
+        this.#testComplex1()
     }
     #testBlank() {
         const txt = ``
@@ -187,6 +184,61 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         console.assert(0 === actual.nodes[2].content.options.length)
     }
 
+    #testChild2() {
+        const txt = `
+親1
+    子1
+親2
+    子2
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(2 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親1' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(1 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子1' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('親2' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(1 === actual.nodes[1].nodes.length)
+
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子2' === actual.nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].content.options.length)
+    }
+
     #testChild() {
         const txt = `
 親
@@ -266,391 +318,535 @@ class TestTxtyTree { // 単体テスト（木構造テキスト解析）
         console.assert(0 === actual.nodes[0].nodes[0].nodes[0].content.options.length)
 
     }
-
-
-    #testMinimum2() {
-        const actual = Txty.tree('一件目\n二件目')
-        console.assert(Array.isArray(actual))
-        console.assert(1 === actual.length)
-        console.assert(Array.isArray(actual[0]))
-        console.assert(2 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('一件目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-        console.assert(actual[0][1].hasOwnProperty('name'))
-        console.assert(actual[0][1].hasOwnProperty('options'))
-        console.assert('二件目' === actual[0][1].name)
-        console.assert(Array.isArray(actual[0][1].options))
-        console.assert(0 === actual[0][1].options.length)
-    }
-    #testMinimum3() {
-        const actual = Txty.tree('一件目\n二件目\n三件目')
-        console.assert(Array.isArray(actual))
-        console.assert(1 === actual.length)
-        console.assert(Array.isArray(actual[0]))
-        console.assert(3 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('一件目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-        console.assert(actual[0][1].hasOwnProperty('name'))
-        console.assert(actual[0][1].hasOwnProperty('options'))
-        console.assert('二件目' === actual[0][1].name)
-        console.assert(Array.isArray(actual[0][1].options))
-        console.assert(0 === actual[0][1].options.length)
-        console.assert(actual[0][2].hasOwnProperty('name'))
-        console.assert(actual[0][2].hasOwnProperty('options'))
-        console.assert('三件目' === actual[0][2].name)
-        console.assert(Array.isArray(actual[0][2].options))
-        console.assert(0 === actual[0][2].options.length)
-    }
-    #testTwo() {
-        const name = '一要素目\n\n二要素目'
-        const actual = Txty.tree(`${name}`)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('一要素目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(1 === actual[1].length)
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('二要素目' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-    }
-    #test1Block2Property() {
-        const txt = `１ブロック目の１行目\n１ブロック目の２行目`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(1 === actual.length)
-        console.assert(Array.isArray(actual[0]))
-        console.assert(2 === actual[0].length)
-
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目の１行目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(actual[0][1].hasOwnProperty('name'))
-        console.assert(actual[0][1].hasOwnProperty('options'))
-        console.assert('１ブロック目の２行目' === actual[0][1].name)
-        console.assert(Array.isArray(actual[0][1].options))
-        console.assert(0 === actual[0][1].options.length)
-    }
-    #test2Block1Property() {
-        const txt = `１ブロック目\n\n２ブロック目`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(1 === actual[1].length)
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-    }
-    #test2Block1PropertyOverBlank3() {
-        const txt = `１ブロック目\n\n\n２ブロック目`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(1 === actual[1].length)
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-    }
-    #test2Block1PropertyOverBlank4() {
-        const txt = `１ブロック目\n\n\n\n２ブロック目`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(1 === actual[1].length)
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-    }
-    #test2Block1PropertyOverBlank5() {
-        const txt = `１ブロック目\n\n\n\n\n２ブロック目`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(1 === actual[1].length)
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-    }
-    #test1Block1Property1Option() {
-        const txt = `１ブロック目    １ブロック目のオプション１`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(1 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(1 === actual[0][0].options.length)
-        console.assert('１ブロック目のオプション１' === actual[0][0].options[0])
-    }
-    #test2Block1Property1Option() {
-        const txt = `１ブロック目    １ブロック目のオプション１\n\n２ブロック目    ２ブロック目のオプション１`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(1 === actual[0].length)
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(1 === actual[0][0].options.length)
-        console.assert('１ブロック目のオプション１' === actual[0][0].options[0])
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(1 === actual[1].length)
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(1 === actual[1][0].options.length)
-        console.assert('２ブロック目のオプション１' === actual[1][0].options[0])
-    }
-    #test2Block2Property() {
-        const txt = `１ブロック目１プロパティ\n１ブロック目２プロパティ\n\n２ブロック目１プロパティ\n２ブロック目２プロパティ`.trim()
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(2 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(2 === actual[0].length)
-
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目１プロパティ' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(actual[0][1].hasOwnProperty('name'))
-        console.assert(actual[0][1].hasOwnProperty('options'))
-        console.assert('１ブロック目２プロパティ' === actual[0][1].name)
-        console.assert(Array.isArray(actual[0][1].options))
-        console.assert(0 === actual[0][1].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(2 === actual[1].length)
-
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目１プロパティ' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-
-        console.assert(actual[1][1].hasOwnProperty('name'))
-        console.assert(actual[1][1].hasOwnProperty('options'))
-        console.assert('２ブロック目２プロパティ' === actual[1][1].name)
-        console.assert(Array.isArray(actual[1][1].options))
-        console.assert(0 === actual[1][1].options.length)
-    }
-    #test3Block2Property() {
+    #testGrandChild2() {
         const txt = `
-１ブロック目１プロパティ
-１ブロック目２プロパティ
-
-２ブロック目１プロパティ
-２ブロック目２プロパティ
-
-３ブロック目１プロパティ
-３ブロック目２プロパティ`
-        const actual = Txty.tree(txt)
-        console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(3 === actual.length)
-
-        console.assert(Array.isArray(actual[0]))
-        console.assert(2 === actual[0].length)
-
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目１プロパティ' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
-
-        console.assert(actual[0][1].hasOwnProperty('name'))
-        console.assert(actual[0][1].hasOwnProperty('options'))
-        console.assert('１ブロック目２プロパティ' === actual[0][1].name)
-        console.assert(Array.isArray(actual[0][1].options))
-        console.assert(0 === actual[0][1].options.length)
-
-        console.assert(Array.isArray(actual[1]))
-        console.assert(2 === actual[1].length)
-
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目１プロパティ' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(0 === actual[1][0].options.length)
-
-        console.assert(actual[1][1].hasOwnProperty('name'))
-        console.assert(actual[1][1].hasOwnProperty('options'))
-        console.assert('２ブロック目２プロパティ' === actual[1][1].name)
-        console.assert(Array.isArray(actual[1][1].options))
-        console.assert(0 === actual[1][1].options.length)
-
-        console.assert(Array.isArray(actual[2]))
-        console.assert(2 === actual[2].length)
-
-        console.assert(actual[2][0].hasOwnProperty('name'))
-        console.assert(actual[2][0].hasOwnProperty('options'))
-        console.assert('３ブロック目１プロパティ' === actual[2][0].name)
-        console.assert(Array.isArray(actual[2][0].options))
-        console.assert(0 === actual[2][0].options.length)
-
-        console.assert(actual[2][1].hasOwnProperty('name'))
-        console.assert(actual[2][1].hasOwnProperty('options'))
-        console.assert('３ブロック目２プロパティ' === actual[2][1].name)
-        console.assert(Array.isArray(actual[2][1].options))
-        console.assert(0 === actual[2][1].options.length)
-    }
-
-    #test3Block2PropertyOptions() {
-        const txt = `
-    
-
-１ブロック目１プロパティ
-１ブロック目２プロパティ    オプション121
-
-２ブロック目１プロパティ    オプション211    オプション212
-２ブロック目２プロパティ
-
-
-
-３ブロック目１プロパティ
-３ブロック目２プロパティ
-
-
-    
+親1
+    子1
+        孫1
+親2
+    子2
+        孫2
 `
         const actual = Txty.tree(txt)
         console.log(actual)
-        console.assert(Array.isArray(actual))
-        console.assert(3 === actual.length)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(3 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
 
-        console.assert(Array.isArray(actual[0]))
-        console.assert(2 === actual[0].length)
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親1' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(1 === actual.nodes[0].nodes.length)
 
-        console.assert(actual[0][0].hasOwnProperty('name'))
-        console.assert(actual[0][0].hasOwnProperty('options'))
-        console.assert('１ブロック目１プロパティ' === actual[0][0].name)
-        console.assert(Array.isArray(actual[0][0].options))
-        console.assert(0 === actual[0][0].options.length)
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子1' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
 
-        console.assert(actual[0][1].hasOwnProperty('name'))
-        console.assert(actual[0][1].hasOwnProperty('options'))
-        console.assert('１ブロック目２プロパティ' === actual[0][1].name)
-        console.assert(Array.isArray(actual[0][1].options))
-        console.assert(1 === actual[0][1].options.length)
-        console.assert('オプション121' === actual[0][1].options[0])
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫1' === actual.nodes[0].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].nodes[0].content.options.length)
 
-        console.assert(Array.isArray(actual[1]))
-        console.assert(2 === actual[1].length)
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('親2' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(1 === actual.nodes[1].nodes.length)
 
-        console.assert(actual[1][0].hasOwnProperty('name'))
-        console.assert(actual[1][0].hasOwnProperty('options'))
-        console.assert('２ブロック目１プロパティ' === actual[1][0].name)
-        console.assert(Array.isArray(actual[1][0].options))
-        console.assert(2 === actual[1][0].options.length)
-        console.assert('オプション211' === actual[1][0].options[0])
-        console.assert('オプション212' === actual[1][0].options[1])
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子2' === actual.nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].content.options.length)
 
-        console.assert(actual[1][1].hasOwnProperty('name'))
-        console.assert(actual[1][1].hasOwnProperty('options'))
-        console.assert('２ブロック目２プロパティ' === actual[1][1].name)
-        console.assert(Array.isArray(actual[1][1].options))
-        console.assert(0 === actual[1][1].options.length)
+        console.assert(actual.nodes[1].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫2' === actual.nodes[1].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].nodes[0].content.options.length)
+    }
+    #testDepthDiff1_1_2() { // 階層差1(maxDepthが正しいこと)
+        const txt = `
+先頭
+親
+    子
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(2 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
 
-        console.assert(Array.isArray(actual[2]))
-        console.assert(2 === actual[2].length)
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('先頭' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(0 === actual.nodes[0].nodes.length)
 
-        console.assert(actual[2][0].hasOwnProperty('name'))
-        console.assert(actual[2][0].hasOwnProperty('options'))
-        console.assert('３ブロック目１プロパティ' === actual[2][0].name)
-        console.assert(Array.isArray(actual[2][0].options))
-        console.assert(0 === actual[2][0].options.length)
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(1 === actual.nodes[1].nodes.length)
 
-        console.assert(actual[2][1].hasOwnProperty('name'))
-        console.assert(actual[2][1].hasOwnProperty('options'))
-        console.assert('３ブロック目２プロパティ' === actual[2][1].name)
-        console.assert(Array.isArray(actual[2][1].options))
-        console.assert(0 === actual[2][1].options.length)
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子' === actual.nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].content.options.length)
+    }
+    #testDepthDiff1_2_1() { // 階層差1(maxDepthが正しいこと)
+        const txt = `
+親
+    子
+末尾
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(2 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(1 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('末尾' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(0 === actual.nodes[1].nodes.length)
+    }
+    #testDepthDiff1_1_3() { // 階層差1(maxDepthが正しいこと)
+        const txt = `
+先頭
+親
+    子
+        孫
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(3 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('先頭' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(0 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(1 === actual.nodes[1].nodes.length)
+
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子' === actual.nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫' === actual.nodes[1].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].nodes[0].content.options.length)
+    }
+    #testDepthDiff1_3_1() { // 階層差1(maxDepthが正しいこと)
+        const txt = `
+親
+    子
+        孫
+末尾
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(3 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(1 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫' === actual.nodes[0].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('末尾' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(0 === actual.nodes[1].nodes.length)
+    }
+
+    #testMiddleBlankError() {
+        const txt = `
+親
+    子
+        孫
+
+途中に空行があるとエラー
+`
+        try { Txty.tree(txt); }
+        catch(e) {
+            if (!(e instanceof TxtyTreeError)) { throw new UnitTestError(`例外の型が期待値と異なります。`); }
+            if (e.message !== `途中に空行があってはなりません。`) { throw new UnitTestError(`例外メッセージが期待値と異なります。`); }
+        }
+    }
+    #testSameDepth2_3() { // 同一階層が2連続で続くのが3階層分続く
+        const txt = `
+先頭
+親
+    子1
+    子2
+        孫21
+        孫22
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(3 === actual.maxDepth)
+        console.assert(2 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('先頭' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].content.options.length)
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(0 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('親' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(2 === actual.nodes[1].nodes.length)
+
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子1' === actual.nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[1].content.hasOwnProperty('options'))
+        console.assert('子2' === actual.nodes[1].nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].nodes[1].content.options.length)
+
+        console.assert(actual.nodes[1].nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫21' === actual.nodes[1].nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[1].nodes[0].content.options.length)
+
+        console.assert(actual.nodes[1].nodes[1].nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[1].nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[1].nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[1].nodes[1].content.hasOwnProperty('options'))
+        console.assert('孫22' === actual.nodes[1].nodes[1].nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[1].nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].nodes[1].nodes[1].content.options.length)
+    }
+    #testComplex1() { // 複雑形
+        const txt = `
+親1    オプション1.1
+    子11
+        孫111    オプション111.1    オプション111.2
+            ひ孫1111
+    子12
+    子13
+        孫131
+        孫132
+            ひ孫1321    オプション1321.1
+        孫133
+親2
+    子21
+        孫211
+            ひ孫2111
+親3
+`
+        const actual = Txty.tree(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(!actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('nodes'))
+        console.assert(actual.hasOwnProperty('maxDepth'))
+        console.assert(actual.hasOwnProperty('indentText'))
+        console.assert(Txty.Indent.Space4 === actual.indentText)
+        console.assert(4 === actual.maxDepth)
+        console.assert(3 === actual.nodes.length)
+
+        console.assert(actual.nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].content.hasOwnProperty('options'))
+        console.assert('親1' === actual.nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].content.options))
+        console.assert(1 === actual.nodes[0].content.options.length)
+        console.assert('オプション1.1' === actual.nodes[0].content.options[0])
+        console.assert(Array.isArray(actual.nodes[0].nodes))
+        console.assert(3 === actual.nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子11' === actual.nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].content.options.length)
+        console.assert(1 === actual.nodes[0].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫111' === actual.nodes[0].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].nodes[0].content.options))
+        console.assert(2 === actual.nodes[0].nodes[0].nodes[0].content.options.length)
+        console.assert('オプション111.1' === actual.nodes[0].nodes[0].nodes[0].content.options[0])
+        console.assert('オプション111.2' === actual.nodes[0].nodes[0].nodes[0].content.options[1])
+        console.assert(1 === actual.nodes[0].nodes[0].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[0].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[0].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('ひ孫1111' === actual.nodes[0].nodes[0].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[0].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[0].nodes[0].nodes[0].content.options.length)
+        console.assert(0 === actual.nodes[0].nodes[0].nodes[0].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[1].content.hasOwnProperty('options'))
+        console.assert('子12' === actual.nodes[0].nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[1].content.options))
+        console.assert(0 === actual.nodes[0].nodes[1].content.options.length)
+        console.assert(0 === actual.nodes[0].nodes[1].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[2].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[2].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[2].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[2].content.hasOwnProperty('options'))
+        console.assert('子13' === actual.nodes[0].nodes[2].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[2].content.options))
+        console.assert(0 === actual.nodes[0].nodes[2].content.options.length)
+        console.assert(3 === actual.nodes[0].nodes[2].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[2].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[2].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[2].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[2].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫131' === actual.nodes[0].nodes[2].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[2].nodes[0].content.options))
+        console.assert(0 === actual.nodes[0].nodes[2].nodes[0].content.options.length)
+        console.assert(0 === actual.nodes[0].nodes[2].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[2].nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[2].nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[2].nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[2].nodes[1].content.hasOwnProperty('options'))
+        console.assert('孫132' === actual.nodes[0].nodes[2].nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[2].nodes[1].content.options))
+        console.assert(0 === actual.nodes[0].nodes[2].nodes[1].content.options.length)
+        console.assert(1 === actual.nodes[0].nodes[2].nodes[1].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[2].nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[2].nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[2].nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[2].nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('ひ孫1321' === actual.nodes[0].nodes[2].nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[2].nodes[1].nodes[0].content.options))
+        console.assert(1 === actual.nodes[0].nodes[2].nodes[1].nodes[0].content.options.length)
+        console.assert('オプション1321.1' === actual.nodes[0].nodes[2].nodes[1].nodes[0].content.options[0])
+        console.assert(0 === actual.nodes[0].nodes[2].nodes[1].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[0].nodes[2].nodes[2].hasOwnProperty('content'))
+        console.assert(actual.nodes[0].nodes[2].nodes[2].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[0].nodes[2].nodes[2].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[0].nodes[2].nodes[2].content.hasOwnProperty('options'))
+        console.assert('孫133' === actual.nodes[0].nodes[2].nodes[2].content.name)
+        console.assert(Array.isArray(actual.nodes[0].nodes[2].nodes[2].content.options))
+        console.assert(0 === actual.nodes[0].nodes[2].nodes[2].content.options.length)
+        console.assert(0 === actual.nodes[0].nodes[2].nodes[2].content.options.length)
+
+
+
+        console.assert(actual.nodes[1].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].content.hasOwnProperty('options'))
+        console.assert('親2' === actual.nodes[1].content.name)
+        console.assert(Array.isArray(actual.nodes[1].content.options))
+        console.assert(0 === actual.nodes[1].content.options.length)
+        console.assert(Array.isArray(actual.nodes[1].nodes))
+        console.assert(1 === actual.nodes[1].nodes.length)
+
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].content.hasOwnProperty('options'))
+        console.assert('子21' === actual.nodes[1].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].content.options.length)
+        console.assert(1 === actual.nodes[1].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[1].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('孫211' === actual.nodes[1].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].nodes[0].content.options.length)
+        console.assert(1 === actual.nodes[1].nodes[0].nodes[0].nodes.length)
+
+        console.assert(actual.nodes[1].nodes[0].nodes[0].nodes[0].hasOwnProperty('content'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].nodes[0].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].nodes[0].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[1].nodes[0].nodes[0].nodes[0].content.hasOwnProperty('options'))
+        console.assert('ひ孫2111' === actual.nodes[1].nodes[0].nodes[0].nodes[0].content.name)
+        console.assert(Array.isArray(actual.nodes[1].nodes[0].nodes[0].nodes[0].content.options))
+        console.assert(0 === actual.nodes[1].nodes[0].nodes[0].nodes[0].content.options.length)
+        console.assert(0 === actual.nodes[1].nodes[0].nodes[0].nodes[0].nodes.length)
+
+
+        console.assert(actual.nodes[2].hasOwnProperty('content'))
+        console.assert(actual.nodes[2].hasOwnProperty('nodes'))
+        console.assert(actual.nodes[2].content.hasOwnProperty('name'))
+        console.assert(actual.nodes[2].content.hasOwnProperty('options'))
+        console.assert('親3' === actual.nodes[2].content.name)
+        console.assert(Array.isArray(actual.nodes[2].content.options))
+        console.assert(0 === actual.nodes[2].content.options.length)
+        console.assert(Array.isArray(actual.nodes[2].nodes))
+        console.assert(0 === actual.nodes[2].nodes.length)
     }
 }
