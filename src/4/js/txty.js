@@ -69,21 +69,6 @@ class TxtyStoresParser extends TxtyParser {
         const parser = new TxtyStoreParser(this.INDENT)
         return blocks.map(block=>parser.parseFromLines(block))
     }
-    /*
-    parseFromLines(lines, indent=null) {
-        super.setIndent(indent)
-        const list = []
-        const blocks = TxtyBlock.blocks(lines)
-        for (const block of TxtyBlock.blocks(lines)) {
-            const nodes = []
-            for (const line of block) {
-                nodes.push(Txty.line(line, this.INDENT))
-            }
-            list.push(nodes)
-        }
-        return list
-    }
-    */
 }
 class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジェクトを返す
     parse(txt, indent=null) {
@@ -144,12 +129,12 @@ class TxtyCompositeParser extends TxtyParser {
         if (1 === this.LINES.length && !this.LINES[0]) { return list; }
         const blocks = TxtyBlock.blocks(this.LINES)
         for (const block of TxtyBlock.blocks(this.LINES)) {
-            const parser = (this.isTree(block)) ? new TxtyTreeParser() : new TxtyStoresParser()
+            const parser = (this.#isTree(block)) ? new TxtyTreeParser() : new TxtyStoresParser()
             list.push(parser.parseFromLines(block, this.INDENT))
         }
         return list
     }
-    isTree(block) { return block.some(line=>line.startsWith(this.INDENT)); }
+    #isTree(block) { return block.some(line=>line.startsWith(this.INDENT)); }
 }
 class TxtyBlock { // 2行以上空行の箇所で分断されたテキスト行配列リスト
     static blocks(LINES) {
