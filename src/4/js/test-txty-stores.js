@@ -1,5 +1,5 @@
 class UnitTestError extends ExtensibleCustomError {}
-class TestTxtyLines { // 単体テスト（複数行テキスト解析）
+class TestTxtyStores { // 単体テスト（複数行テキスト解析）
     test() {
         this.#testBlank()
         this.#testEndBlank()
@@ -22,7 +22,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #testBlank() {
         const txt = ``
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
@@ -31,7 +31,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #testMinimum() {
         const name = '一件のみ'
-        const actual = Txty.lines(`${name}`)
+        const actual = Txty.stores(`${name}`)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(Array.isArray(actual[0]))
@@ -45,7 +45,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     #testEndBlank() {
         const name = '１ブロック目'
         const txt = `${name}\n\n`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
@@ -60,7 +60,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     #testBeginBlank() {
         const name = '１ブロック目'
         const txt = `\n\n${name}`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
@@ -75,7 +75,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
 
     #testMinimum2() {
-        const actual = Txty.lines('一件目\n二件目')
+        const actual = Txty.stores('一件目\n二件目')
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(Array.isArray(actual[0]))
@@ -92,7 +92,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
         console.assert(0 === actual[0][1].options.length)
     }
     #testMinimum3() {
-        const actual = Txty.lines('一件目\n二件目\n三件目')
+        const actual = Txty.stores('一件目\n二件目\n三件目')
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
         console.assert(Array.isArray(actual[0]))
@@ -114,8 +114,8 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
         console.assert(0 === actual[0][2].options.length)
     }
     #testTwo() {
-        const name = '一要素目\n\n二要素目'
-        const actual = Txty.lines(`${name}`)
+        const txt = `一要素目\n\n二要素目`
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -138,7 +138,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test1Block2Property() {
         const txt = `１ブロック目の１行目\n１ブロック目の２行目`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
@@ -159,7 +159,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test2Block1Property() {
         const txt = `１ブロック目\n\n２ブロック目`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -182,7 +182,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test2Block1PropertyOverBlank3() {
         const txt = `１ブロック目\n\n\n２ブロック目`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -205,7 +205,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test2Block1PropertyOverBlank4() {
         const txt = `１ブロック目\n\n\n\n２ブロック目`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -228,7 +228,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test2Block1PropertyOverBlank5() {
         const txt = `１ブロック目\n\n\n\n\n２ブロック目`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -251,7 +251,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test1Block1Property1Option() {
         const txt = `１ブロック目    １ブロック目のオプション１`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(1 === actual.length)
@@ -267,7 +267,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test2Block1Property1Option() {
         const txt = `１ブロック目    １ブロック目のオプション１\n\n２ブロック目    ２ブロック目のオプション１`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -292,7 +292,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
     }
     #test2Block2Property() {
         const txt = `１ブロック目１プロパティ\n１ブロック目２プロパティ\n\n２ブロック目１プロパティ\n２ブロック目２プロパティ`.trim()
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(2 === actual.length)
@@ -337,7 +337,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
 
 ３ブロック目１プロパティ
 ３ブロック目２プロパティ`
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(3 === actual.length)
@@ -406,7 +406,7 @@ class TestTxtyLines { // 単体テスト（複数行テキスト解析）
 
     
 `
-        const actual = Txty.lines(txt)
+        const actual = Txty.stores(txt)
         console.log(actual)
         console.assert(Array.isArray(actual))
         console.assert(3 === actual.length)

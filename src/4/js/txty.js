@@ -1,13 +1,15 @@
 class TxtyError extends ExtensibleCustomError {}
-class TxtyLineError extends TxtyError {}
-class TxtyLinesError extends TxtyError {}
+class TxtyItemError extends TxtyError {}
+class TxtyStoreError extends TxtyError {}
+class TxtyStoresError extends TxtyError {}
 class TxtyTreeError extends TxtyError {}
 class TxtyCompositeError extends TxtyError {}
 class Txty {
-    static line(line, indent=TxtyIndent.Space4) { return new TxtyLineParser(indent).generate(line); }
-    static lines(txt, indent=TxtyIndent.Space4) { return new TxtyLinesParser(indent).generate(txt); }
-    static tree(txt, indent=TxtyIndent.Space4) { return new TxtyTreeParser(indent).generate(txt); }
-    static composite(txt, indent=TxtyIndent.Space4) { return new TxtyCompositeParser(indent).generate(txt); }
+    static item(line, indent=TxtyIndent.Space4) { return new TxtyItemParser(indent).parse(line); }
+    static store(txt, indent=TxtyIndent.Space4) { return new TxtyStoreParser(indent).parse(txt); }
+    static stores(txt, indent=TxtyIndent.Space4) { return new TxtyStoresParser(indent).parse(txt); }
+    static tree(txt, indent=TxtyIndent.Space4) { return new TxtyTreeParser(indent).parse(txt); }
+    static composite(txt, indent=TxtyIndent.Space4) { return new TxtyCompositeParser(indent).parse(txt); }
     static get Indent() { return TxtyIndent; }
 }
 class TxtyIndent {
@@ -18,7 +20,7 @@ class TxtyIndent {
 }
 class TxtyParser {
     constructor(indent=TxtyIndent.Space4) { this.LINES = null; this.INDENT = indent; }
-    generate(txt) { this.LINES = txt.trim().split(/\r\n|\n/); }
+    parse(txt) { this.LINES = txt.trim().split(/\r\n|\n/); }
     setIndent(indent) { this.INDENT = indent || this.INDENT || TxtyIndent.Space4; }
     guessIndentText() { // テキスト内のインデント文字を推測する（最初に見つかった所定のインデント文字がそれとする。以降それをインデント文字として使われることを期待する）
         const INDENTS = ['\t'].concat([2,4,8].map((i)=>' '.repeat(i)))
@@ -28,10 +30,10 @@ class TxtyParser {
         throw new TxtyTreeError(`インデント文字の推測に失敗しました。入力テキストのうち少なくともひとつの行の先頭にTABまたは半角スペース2,4,8のいずれかを含めてください。`)
     }
 }
-class TxtyLineParser extends TxtyParser {
-    generate(line, indent=null) {
+class TxtyItemParser extends TxtyParser {
+    parse(line, indent=null) {
         super.setIndent(indent)
-        if (!line.trim()) { throw new TxtyLineError('引数lineには空白文字以外の字がひとつ以上必要です。'); }
+        if (!line.trim()) { throw new TxtyItemError('引数lineには空白文字以外の字がひとつ以上必要です。'); }
         const obj = {}
         const values = line.split(this.INDENT)
         obj.name = values[0]
@@ -39,12 +41,35 @@ class TxtyLineParser extends TxtyParser {
         return obj
     }
 }
-class TxtyLinesParser extends TxtyParser {
-    generate(txt, indent=null) {
-        super.generate(txt)
-        return this.generateFromLines(this.LINES)
+class TxtyStoreParser extends TxtyParser {
+    parse(txt, indent=null) {
+        super.parse(txt)
+        return this.parseFromLines(this.LINES)
     }
-    generateFromLines(lines, indent=null) {
+    parseFromLines(lines, indent=null) {
+        super.setIndent(indent)
+        const list = []
+        const parser = new TxtyItemParser(this.INDENT)
+        for (const line of lines) {
+            if (!line) { throw new TxtyStoreError(`途中に空行を含めることはできません。`); }
+            list.push(parser.parse(line))
+        }
+        return list
+    }
+}
+class TxtyStoresParser extends TxtyParser {
+    parse(txt, indent=null) {
+        super.parse(txt)
+        return this.parseFromLines(this.LINES)
+    }
+    parseFromLines(lines, indent=null) {
+        super.setIndent(indent)
+        const blocks = TxtyBlock.blocks(lines)
+        const parser = new TxtyStoreParser(this.INDENT)
+        return blocks.map(block=>parser.parseFromLines(block))
+    }
+    /*
+    parseFromLines(lines, indent=null) {
         super.setIndent(indent)
         const list = []
         const blocks = TxtyBlock.blocks(lines)
@@ -57,24 +82,26 @@ class TxtyLinesParser extends TxtyParser {
         }
         return list
     }
+    */
 }
 class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジェクトを返す
-    generate(txt, indent=null) {
-        super.generate(txt)
-        return this.generateFromLines(this.LINES, indent)
+    parse(txt, indent=null) {
+        super.parse(txt)
+        return this.parseFromLines(this.LINES, indent)
     }
-    generateFromLines(lines, indent=null) {
+    parseFromLines(lines, indent=null) {
         if (indent) { this.INDENT = indent; }
         if (!indent && !this.INDENT) { this.INDENT = super.guessIndentText(); }
         const root = this.#makeRoot()
         if (1 === lines.length && !lines[0]) { return root; }
         let [depth, preDepth] = [1, 1]
         const parents = [root]
+        const parser = new TxtyItemParser(this.INDENT)
         for (const line of lines) {
             if (!line) { throw new TxtyTreeError(`途中に空行があってはなりません。`); }
             depth = this.#getDepth(line, root.indentText)
             this.#validDepth(depth, preDepth)
-            const node = {content:Txty.line(line.trim(), this.INDENT), nodes:[]}
+            const node = {content:parser.parse(line.trim()), nodes:[]}
             const parent = this.#getParent(parents, depth, preDepth)
             if (root.maxDepth < parents.length) { root.maxDepth = parents.length; }
             parent.nodes.push(node);
@@ -109,15 +136,15 @@ class TxtyTreeParser extends TxtyParser { // ツリー（木構造）オブジ�
     }
 }
 class TxtyCompositeParser extends TxtyParser {
-    generate(txt, indent=null) {
+    parse(txt, indent=null) {
         super.setIndent(indent)
         const list = []
-        super.generate(txt)
+        super.parse(txt)
         if (1 === this.LINES.length && !this.LINES[0]) { return list; }
         const blocks = TxtyBlock.blocks(this.LINES)
         for (const block of TxtyBlock.blocks(this.LINES)) {
-            const parser = (this.isTree(block)) ? new TxtyTreeParser() : new TxtyLinesParser()
-            list.push(parser.generateFromLines(block, this.INDENT))
+            const parser = (this.isTree(block)) ? new TxtyTreeParser() : new TxtyStoresParser()
+            list.push(parser.parseFromLines(block, this.INDENT))
         }
         return list
     }

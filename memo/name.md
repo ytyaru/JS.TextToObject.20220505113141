@@ -87,3 +87,22 @@ TxtyCompositeParser.Typeof(blocks[0]) // Txty.Type.Store
 TxtyCompositeParser.Typeof(blocks[1]) // Txty.Type.Node
 ```
 
+### メソッド名
+
+前|後
+--|--
+`generate`|`parse`
+
+　クラス名が`Parser`なのにメソッド名が`generate`なのはおかしい。なのでメソッド名を`parse`にする。
+
+　解析して変換するので`parse`のほうがふさわしいと思う。
+
+動詞|意味
+----|----
+parse|解析する
+convert|変換する
+generate|生成する
+
+　プレーンテキストから配列やオブジェクトに変換するので`convert`のほうがふさわしいかもしれない。けれど変換の前に解析するので`parse`であるべきか。また`generate`はゼロから生み出すニュアンスがあるため不適格。あくまでプレーンテキストの入力を元にするためである。
+
+

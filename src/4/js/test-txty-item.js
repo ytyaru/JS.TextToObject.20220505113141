@@ -1,5 +1,5 @@
 class UnitTestError extends ExtensibleCustomError {}
-class TestTxtyLine { // 単体テスト（一行テキスト解析）
+class TestTxtyItemParser { // 単体テスト（一行テキスト解析）
     test() {
         this.#testBlankError()
         this.#testMinimum()
@@ -10,17 +10,19 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         this.#testOption1Space2()
         this.#testOption2Space2()
         this.#testOption3Space2()
+        this.#testOption3TabConstructor()
     }
     #testBlankError() {
-        try { Txty.line(''); }
+        try { new TxtyParser().parse(''); }
         catch (e) {
-            if (!(e instanceof TxtyLineError)) { throw new UnitTestError(`例外の型が期待値と違います。`);  }
+            console.log(e)
+            if (!(e instanceof TxtyItemError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
             if (e.message !== `引数lineには空白文字以外の字がひとつ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
     }
     #testMinimum() {
         const expected = '必須値のみ'
-        const actual = Txty.line(expected)
+        const actual = new TxtyItemParser().parse(expected)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(expected === actual.name)
@@ -32,7 +34,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = '    '
         const option = 'オプション値'
         const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt)
+        const actual = new TxtyItemParser().parse(txt)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -45,7 +47,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = '\t'
         const option = 'オプション値'
         const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -58,7 +60,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = '\t'
         const options = ['オプション値1', 'オプション値2']
         const txt = `${name}${indent}${options[0]}${indent}${options[1]}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -72,7 +74,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = '\t'
         const options = ['オプション値1', 'オプション値2', 'オプション値3']
         const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -87,7 +89,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = ' '.repeat(2)
         const option = 'オプション値'
         const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -100,7 +102,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = ' '.repeat(2)
         const options = ['オプション値1', 'オプション値2']
         const txt = `${name}${indent}${options[0]}${indent}${options[1]}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -114,7 +116,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = ' '.repeat(2)
         const options = ['オプション値1', 'オプション値2', 'オプション値3']
         const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -129,7 +131,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = ' '.repeat(4)
         const option = 'オプション値'
         const txt = `${name}${indent}${option}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -142,7 +144,7 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = ' '.repeat(4)
         const options = ['オプション値1', 'オプション値2']
         const txt = `${name}${indent}${options[0]}${indent}${options[1]}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
@@ -156,7 +158,22 @@ class TestTxtyLine { // 単体テスト（一行テキスト解析）
         const indent = ' '.repeat(4)
         const options = ['オプション値1', 'オプション値2', 'オプション値3']
         const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
-        const actual = Txty.line(txt, indent)
+        const actual = new TxtyItemParser().parse(txt, indent)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('options'))
+        console.assert(name === actual.name)
+        console.assert(Array.isArray(actual.options))
+        console.assert(3 === actual.options.length)
+        console.assert(options[0] === actual.options[0])
+        console.assert(options[1] === actual.options[1])
+        console.assert(options[2] === actual.options[2])
+    }
+    #testOption3TabConstructor() {
+        const name = '必須値'
+        const indent = Txty.Indent.Tab
+        const options = ['オプション値1', 'オプション値2', 'オプション値3']
+        const txt = `${name}${indent}${options[0]}${indent}${options[1]}${indent}${options[2]}`
+        const actual = new TxtyItemParser(indent).parse(txt)
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('options'))
         console.assert(name === actual.name)
