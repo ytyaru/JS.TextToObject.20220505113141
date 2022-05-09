@@ -47,6 +47,7 @@ class TxtyStoreParser extends TxtyParser {
         return this.parseFromLines(this.LINES)
     }
     parseFromLines(lines, indent=null) {
+        if (!lines[0] || 0 === lines.length || 0 === lines[0].trim().length ) { throw new TxtyStoreError(`引数linesは空白文字以外が1字以上ある文字列の要素が1つ以上必要です。`); }
         super.setIndent(indent)
         const list = []
         const parser = new TxtyItemParser(this.INDENT)

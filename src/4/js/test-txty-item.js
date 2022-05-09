@@ -13,9 +13,8 @@ class TestTxtyItemParser { // 単体テスト（一行テキスト解析）
         this.#testOption3TabConstructor()
     }
     #testBlankError() {
-        try { new TxtyParser().parse(''); }
+        try { new TxtyItemParser().parse(''); }
         catch (e) {
-            console.log(e)
             if (!(e instanceof TxtyItemError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
             if (e.message !== `引数lineには空白文字以外の字がひとつ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
